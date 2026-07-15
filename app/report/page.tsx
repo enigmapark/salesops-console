@@ -12,7 +12,9 @@ import {
   deltaCountLabel,
   deltaLabel,
   prevMonthOf,
+  productChannelBreakdown,
 } from "@/lib/report";
+import type { Product } from "@/lib/types";
 import { getToday } from "@/lib/today";
 import { useAppData } from "@/lib/use-app-data";
 import type { ReportComment } from "@/lib/types";
@@ -120,27 +122,80 @@ export default function ReportPage() {
 
       <h2 className="hidden text-lg font-bold print:block">[Account Team 월간 보고] {month}</h2>
 
-      {/* 자동 집계 지표 */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      {/* 제품별 집계 — 링고 / 뉴로 각각 신규 리드·계약·채널 내역 */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        {(["링고", "뉴로"] as Product[]).map((product) => {
+          const cur = product === "링고" ? report.lingo : report.neuro;
+          const prev = prevReport
+            ? product === "링고"
+              ? prevReport.lingo
+              : prevReport.neuro
+            : null;
+          const amount = monthDealLeads
+            .filter((l) => l.product === product)
+            .reduce((sum, l) => sum + l.expectedAmount, 0);
+          const channels = productChannelBreakdown(data.leads, month, product);
+          return (
+            <section key={product} className="rounded-xl border border-zinc-200 bg-white p-4">
+              <h2 className="mb-3 text-sm font-semibold">
+                {product}
+                <span className="ml-1.5 text-xs font-normal text-zinc-400">
+                  {product === "링고" ? "인터넷신문 CMS" : "AI 광고"}
+                </span>
+              </h2>
+              <div className="mb-3 grid grid-cols-3 gap-3">
+                <KpiCard
+                  label="신규 리드"
+                  value={fmtNum(cur.newLeads)}
+                  sub={prev ? deltaLabel(cur.newLeads, prev.newLeads) : undefined}
+                />
+                <KpiCard
+                  label="계약 건수"
+                  value={`${fmtNum(cur.deals)}건`}
+                  sub={`${prev ? deltaCountLabel(cur.deals, prev.deals) : ""}${amount > 0 ? ` · ${fmtWon(amount)}` : ""}`}
+                />
+                <KpiCard label="전환율" value={fmtPct(cur.conversionRate)} sub="계약 ÷ 신규 리드" />
+              </div>
+              {channels.length === 0 ? (
+                <p className="rounded-lg bg-zinc-50 py-3 text-center text-xs text-zinc-400">
+                  이 달 {product} 신규 리드가 없습니다.
+                </p>
+              ) : (
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500">
+                      <th className="py-1.5 font-medium">유입 채널</th>
+                      <th className="py-1.5 text-right font-medium">리드</th>
+                      <th className="py-1.5 text-right font-medium">계약</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {channels.map((c) => (
+                      <tr key={c.source} className="border-b border-zinc-100 last:border-0">
+                        <td className="py-1.5">{c.source}</td>
+                        <td className="py-1.5 text-right tabular-nums">{fmtNum(c.leads)}</td>
+                        <td className="py-1.5 text-right tabular-nums">{fmtNum(c.deals)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </section>
+          );
+        })}
+      </div>
+
+      {/* 전체 합계 */}
+      <div className="grid grid-cols-2 gap-3">
         <KpiCard
-          label="링고 · 신규 리드"
-          value={fmtNum(report.lingo.newLeads)}
-          sub={`${prevReport ? deltaLabel(report.lingo.newLeads, prevReport.lingo.newLeads) : ""} · 계약 ${report.lingo.deals}건 · 전환율 ${fmtPct(report.lingo.conversionRate)}`}
+          label="전체 계약 건수"
+          value={`${fmtNum(monthDealCount)}건`}
+          sub={`${prevReport ? deltaCountLabel(monthDealCount, prevReport.lingo.deals + prevReport.neuro.deals) : ""}${monthDealAmount > 0 ? ` · 예상 ${fmtWon(monthDealAmount)}` : ""}`}
         />
         <KpiCard
-          label="뉴로 · 신규 리드"
-          value={fmtNum(report.neuro.newLeads)}
-          sub={`${prevReport ? deltaLabel(report.neuro.newLeads, prevReport.neuro.newLeads) : ""} · 계약 ${report.neuro.deals}건 · 전환율 ${fmtPct(report.neuro.conversionRate)}`}
-        />
-        <KpiCard
-          label="채널 합계"
+          label="채널 합계 (퍼널 데이터)"
           value={`${fmtNum(report.channelTotals.leads)} 리드`}
           sub={`계약 ${report.channelTotals.deals}건 · 전환율 ${fmtPct(report.channelConversion)} · 광고비 ${fmtWon(report.channelTotals.spend)}`}
-        />
-        <KpiCard
-          label="계약 건수"
-          value={`${fmtNum(monthDealCount)}건`}
-          sub={`${prevReport ? deltaCountLabel(monthDealCount, prevReport.lingo.deals + prevReport.neuro.deals) : ""} · 링고 ${report.lingo.deals}건 · 뉴로 ${report.neuro.deals}건${monthDealAmount > 0 ? ` · 예상 ${fmtWon(monthDealAmount)}` : ""}`}
         />
       </div>
 

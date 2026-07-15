@@ -8,6 +8,7 @@ import {
   deltaCountLabel,
   deltaLabel,
   prevMonthOf,
+  productChannelBreakdown,
   productMonthly,
 } from "../lib/report";
 import { migrateLeadStatus } from "../lib/storage";
@@ -67,6 +68,24 @@ describe("availableMonths", () => {
     expect(months).toContain("2026-03");
     // 내림차순 확인
     expect([...months].sort().reverse()).toEqual(months);
+  });
+});
+
+describe("productChannelBreakdown — 제품별 채널 내역", () => {
+  it("2026-06 링고: 커뮤니티·정부지원사업 각 1건, 계약 0건", () => {
+    const rows = productChannelBreakdown(seedData.leads, "2026-06", "링고");
+    expect(rows).toHaveLength(2);
+    expect(rows.map((r) => r.source).sort()).toEqual(["정부지원사업", "커뮤니티"]);
+    expect(rows.every((r) => r.deals === 0)).toBe(true);
+  });
+
+  it("2026-06 뉴로: 커뮤니티 1건 중 계약 1건", () => {
+    const rows = productChannelBreakdown(seedData.leads, "2026-06", "뉴로");
+    expect(rows).toEqual([{ source: "커뮤니티", leads: 1, deals: 1 }]);
+  });
+
+  it("리드가 없는 월이면 빈 배열", () => {
+    expect(productChannelBreakdown(seedData.leads, "2025-01", "링고")).toEqual([]);
   });
 });
 

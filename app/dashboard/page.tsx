@@ -10,7 +10,7 @@ import { GradeDistributionChart } from "@/components/charts/GradeDistributionCha
 import { cac, cpl, dealRate, isFreeChannel, safeDiv, sortByDealRateDesc } from "@/lib/channel";
 import { fmtNum, fmtPct, fmtWon } from "@/lib/format";
 import { GRADES } from "@/lib/options";
-import { calcGrade, needsContact } from "@/lib/scoring";
+import { calcGrade, needsContact, sortByScoreDesc } from "@/lib/scoring";
 import { getToday } from "@/lib/today";
 import { useAppData } from "@/lib/use-app-data";
 
@@ -139,6 +139,62 @@ export default function DashboardPage() {
           </table>
         </div>
       </section>
+
+      {/* 제품별 리드 패널 — 링고 / 뉴로 각각의 리드 목록 */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        {(["링고", "뉴로"] as const).map((product) => {
+          const rows = sortByScoreDesc(data.leads.filter((l) => l.product === product));
+          return (
+            <section key={product} className="rounded-xl border border-zinc-200 bg-white p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-sm font-semibold">
+                  {product} 리드 <span className="text-zinc-400">({rows.length}건)</span>
+                </h2>
+                <Link
+                  href="/leads"
+                  className="text-xs text-zinc-500 underline-offset-2 hover:underline"
+                >
+                  리드 관리로 →
+                </Link>
+              </div>
+              {rows.length === 0 ? (
+                <p className="py-6 text-center text-sm text-zinc-400">등록된 리드가 없습니다.</p>
+              ) : (
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500">
+                      <th className="py-1.5 font-medium">이름</th>
+                      <th className="py-1.5 font-medium">단계</th>
+                      <th className="py-1.5 font-medium">등급</th>
+                      <th className="py-1.5 text-right font-medium">다음 연락</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((l) => (
+                      <tr key={l.id} className="border-b border-zinc-100 last:border-0">
+                        <td className="max-w-[140px] truncate py-2 font-medium">{l.name}</td>
+                        <td className="py-2 text-zinc-600">{l.status}</td>
+                        <td className="py-2">
+                          <GradeBadge grade={calcGrade(l)} />
+                        </td>
+                        <td className="py-2 text-right">
+                          {needsContact(l, today) ? (
+                            <span className="inline-block whitespace-nowrap rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-xs font-semibold text-rose-700">
+                              연락 요망
+                            </span>
+                          ) : (
+                            <span className="text-xs text-zinc-500">{l.nextContact ?? "–"}</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </section>
+          );
+        })}
+      </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         {/* 오늘의 액션 */}

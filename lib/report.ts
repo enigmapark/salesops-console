@@ -1,7 +1,14 @@
 import { dealRate, safeDiv, sortByDealRateDesc, sumFunnels } from "./channel";
 import { fmtNum, fmtPct, fmtWon } from "./format";
 import { postsInMonth, summarizePosts, type ThreadSummary } from "./threads";
-import type { AppData, ChannelFunnel, Lead, Product, ReportComment } from "./types";
+import type {
+  AcquisitionSource,
+  AppData,
+  ChannelFunnel,
+  Lead,
+  Product,
+  ReportComment,
+} from "./types";
 
 // PRD 5.6 — 월간 보고 자동 집계
 // 제품별 집계는 "해당 월에 처음 문의한(firstInquiry) 리드" 기준 코호트로 계산한다.
@@ -45,6 +52,31 @@ export function buildMonthlyReport(data: AppData, month: string): MonthlyReport 
     channelConversion: safeDiv(channelTotals.deals, channelTotals.leads),
     threads: summarizePosts(postsInMonth(data.threadPosts, month)),
   };
+}
+
+// 제품별 채널 내역 — 해당 월 신규 리드의 유입 채널 기준 (리드 많은 순)
+export interface ProductChannelRow {
+  source: AcquisitionSource;
+  leads: number;
+  deals: number;
+}
+
+export function productChannelBreakdown(
+  leads: Lead[],
+  month: string,
+  product: Product,
+): ProductChannelRow[] {
+  const monthLeads = leads.filter(
+    (l) => l.product === product && l.firstInquiry.startsWith(month),
+  );
+  const map = new Map<AcquisitionSource, ProductChannelRow>();
+  for (const l of monthLeads) {
+    const row = map.get(l.source) ?? { source: l.source, leads: 0, deals: 0 };
+    row.leads += 1;
+    if (l.status === "계약") row.deals += 1;
+    map.set(l.source, row);
+  }
+  return [...map.values()].sort((a, b) => b.leads - a.leads || b.deals - a.deals);
 }
 
 // 전월 계산: "2026-01" → "2025-12"
