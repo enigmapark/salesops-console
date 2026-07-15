@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { KpiCard } from "@/components/KpiCard";
 import { ThreadPostFormModal } from "@/components/ThreadPostFormModal";
+import { ThreadImpressionsChart } from "@/components/charts/ThreadImpressionsChart";
 import { fmtNum, fmtPct } from "@/lib/format";
 import { availableMonths } from "@/lib/report";
 import { clickRate, engagementRate, summarizeByTopic, summarizePosts } from "@/lib/threads";
@@ -34,6 +35,14 @@ export default function ThreadsPage() {
 
   const summary = summarizePosts(posts);
   const byTopic = summarizeByTopic(posts);
+  const chartData = [...posts]
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map((p) => ({
+      date: p.date.slice(5),
+      impressions: p.impressions,
+      leads: p.leadsGenerated,
+      summary: p.summary,
+    }));
 
   const savePost = (post: ThreadPost) =>
     update((d) => {
@@ -89,6 +98,14 @@ export default function ThreadsPage() {
         />
         <KpiCard label="유입 리드" value={fmtNum(summary.totalLeads)} sub="게시글 경유 문의" />
       </div>
+
+      {/* 게시별 노출 추이 차트 */}
+      {chartData.length > 0 && (
+        <section className="rounded-xl border border-zinc-200 bg-white p-4">
+          <h2 className="mb-3 text-sm font-semibold">게시별 노출 (마우스를 올리면 유입 리드도 표시)</h2>
+          <ThreadImpressionsChart data={chartData} />
+        </section>
+      )}
 
       {/* 토픽별 성과 비교 */}
       <section className="rounded-xl border border-zinc-200 bg-white p-4">

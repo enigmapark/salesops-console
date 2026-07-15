@@ -2,6 +2,8 @@
 
 import { GradeBadge } from "@/components/GradeBadge";
 import { KpiCard } from "@/components/KpiCard";
+import { ChannelConversionChart } from "@/components/charts/ChannelConversionChart";
+import { GradeDistributionChart } from "@/components/charts/GradeDistributionChart";
 import { cac, cpl, dealRate, isFreeChannel, safeDiv, sortByDealRateDesc } from "@/lib/channel";
 import { fmtNum, fmtPct, fmtWon } from "@/lib/format";
 import { GRADES } from "@/lib/options";
@@ -22,7 +24,9 @@ export default function DashboardPage() {
   const grades = data.leads.map((l) => calcGrade(l));
   const activeTop = grades.filter((g) => g === "1등급" || g === "2등급").length;
   const contactDue = data.leads.filter((l) => needsContact(l, today)).length;
-  const dealLeads = data.leads.filter((l) => l.status === "계약").length;
+  const dealLeadList = data.leads.filter((l) => l.status === "계약");
+  const dealLeads = dealLeadList.length;
+  const dealAmount = dealLeadList.reduce((sum, l) => sum + l.expectedAmount, 0);
   const conversionRate = safeDiv(dealLeads, totalLeads);
 
   // 최고 무료 채널 (계약전환율 기준)
@@ -44,6 +48,16 @@ export default function DashboardPage() {
 
   const funnels = sortByDealRateDesc(data.funnels);
 
+  // 차트 데이터
+  const channelChartData = funnels
+    .filter((f) => dealRate(f) !== null)
+    .map((f) => ({
+      name: f.source,
+      rate: Math.round((dealRate(f) ?? 0) * 1000) / 10,
+      free: isFreeChannel(f),
+    }));
+  const gradeChartData = gradeCounts.map(({ grade, count }) => ({ grade, count }));
+
   return (
     <div className="space-y-6">
       <div>
@@ -51,15 +65,21 @@ export default function DashboardPage() {
         <p className="text-xs text-zinc-500">기준일 {today}</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <KpiCard label="전체 리드" value={fmtNum(totalLeads)} sub="등록된 모든 리드" />
-        <KpiCard label="1·2등급 (활성)" value={fmtNum(activeTop)} sub="지금 집중할 리드" />
-        <KpiCard label="연락 요망" value={fmtNum(contactDue)} sub="다음 연락일이 오늘이거나 지남" />
+        <KpiCard label="계약 건수" value={`${fmtNum(dealLeads)}건`} sub="상태가 '계약'인 리드" />
+        <KpiCard
+          label="계약 금액 (예상)"
+          value={dealAmount > 0 ? fmtWon(dealAmount) : "–"}
+          sub="계약 리드의 예상 금액 합계"
+        />
         <KpiCard
           label="전체 계약 전환율"
           value={fmtPct(conversionRate)}
           sub={`계약 ${dealLeads}건 / 리드 ${totalLeads}건`}
         />
+        <KpiCard label="1·2등급 (활성)" value={fmtNum(activeTop)} sub="지금 집중할 리드" />
+        <KpiCard label="연락 요망" value={fmtNum(contactDue)} sub="다음 연락일이 오늘이거나 지남" />
         <KpiCard
           label="최고 무료 채널"
           value={bestFree ? bestFree.source : "–"}
@@ -70,6 +90,24 @@ export default function DashboardPage() {
           value={fmtNum(threadLeads)}
           sub={`${thisMonth} · 게시 ${monthPosts.length}건`}
         />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        {/* 채널별 계약전환율 차트 */}
+        <section className="rounded-xl border border-zinc-200 bg-white p-4">
+          <h2 className="mb-3 text-sm font-semibold">채널별 계약전환율</h2>
+          {channelChartData.length === 0 ? (
+            <p className="py-8 text-center text-sm text-zinc-400">데이터가 없습니다.</p>
+          ) : (
+            <ChannelConversionChart data={channelChartData} />
+          )}
+        </section>
+
+        {/* 등급 분포 차트 */}
+        <section className="rounded-xl border border-zinc-200 bg-white p-4">
+          <h2 className="mb-3 text-sm font-semibold">등급 분포 (차트)</h2>
+          <GradeDistributionChart data={gradeChartData} />
+        </section>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
