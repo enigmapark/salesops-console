@@ -97,3 +97,11 @@ export interface ReportComment {
   neuroNote?: string;
   threadNote?: string;
 }
+
+// localStorage에 통째로 저장하는 앱 데이터 묶음
+export interface AppData {
+  leads: Lead[];
+  funnels: ChannelFunnel[];
+  threadPosts: ThreadPost[];
+  reportComments: ReportComment[];
+}
