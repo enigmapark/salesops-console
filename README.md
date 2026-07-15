@@ -3,8 +3,8 @@
 > SaaS 세일즈 담당자가 **리드 채점 → 채널 효율 비교 → 월간 보고**까지 한곳에서 처리하는 SalesOps 대시보드.
 > 스프레드시트로 하던 영업 운영을, 직접 정의한 판단 기준(스코어링 규칙)이 **작동하는 제품**으로 옮겼습니다.
 
-- **라이브 데모**: (Vercel 배포 후 URL 추가 예정)
-- **데모 GIF**: (추가 예정)
+- **라이브 데모**: https://salesops-console.vercel.app
+- **저장소**: https://github.com/enigmapark/salesops-console
 
 ## 왜 만들었나 (문제 정의)
 
