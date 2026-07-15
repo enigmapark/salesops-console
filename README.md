@@ -1,36 +1,97 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SalesOps Console
 
-## Getting Started
+> SaaS 세일즈 담당자가 **리드 채점 → 채널 효율 비교 → 월간 보고**까지 한곳에서 처리하는 SalesOps 대시보드.
+> 스프레드시트로 하던 영업 운영을, 직접 정의한 판단 기준(스코어링 규칙)이 **작동하는 제품**으로 옮겼습니다.
 
-First, run the development server:
+- **라이브 데모**: (Vercel 배포 후 URL 추가 예정)
+- **데모 GIF**: (추가 예정)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 왜 만들었나 (문제 정의)
+
+인터넷신문 CMS(링고)와 AI 광고 SaaS(뉴로)를 영업하면서 반복된 문제:
+
+1. **리드 우선순위가 감에 의존** — 어떤 리드부터 연락할지 기준이 머릿속에만 있었다.
+2. **채널 효율을 비교할 수 없었다** — 메타 광고와 콜드메일 중 어디에 시간을 쓸지 근거가 없었다.
+3. **월간 보고가 매번 수작업** — 매달 같은 지표를 손으로 집계해 슬랙에 정리했다.
+
+스프레드시트는 자동화가 없고 규칙이 재사용되지 않는다. 그래서 **영업 판단 기준을 코드로 명문화**한 웹앱을 만들었다.
+
+## 주요 기능
+
+| 화면 | 기능 |
+|---|---|
+| `/dashboard` | KPI 6종(활성 리드·연락 요망·전환율·최고 무료채널 등) + 등급 분포 + 채널 요약 |
+| `/leads` | 리드 CRUD, 체크박스 입력 즉시 점수·등급 자동 계산, 연락 요망 알림, 이탈사유(추정/확인 구분)·윈백 관리 |
+| `/channels` | 채널별 획득 퍼널(리드→MQL→SQL→계약), CPL·CAC, 무료 채널 강조 |
+| `/report` | 월 선택 → 제품·채널·스레드 지표 자동 집계, WHY-HOW-WHAT 코멘트, **슬랙 붙여넣기용 텍스트 원클릭 생성** |
+| `/threads` | 스레드(Threads) 게시글 로그, 반응률·클릭률, 토픽별 성과 비교, 유입 리드 추적 |
+
+## 핵심: 리드 스코어링 로직
+
+실제 영업 경험에서 뽑아낸 규칙을 순수 함수로 구현했다.
+
+```
+점수 = 가격·견적 문의(+3) + 미팅·데모(+3) + 도입 예정일 언급(+2)
+     + 의사결정자 통화(+2) − 3개월+ 미응답(−1) − 사업 중단(−3)
+
+등급 = 8점↑ 1등급 · 5점↑ 2등급 · 2점↑ 3등급 · 그 외 후순위
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+단, **강제 규칙이 점수보다 우선한다**: 계약 상태면 무조건 "계약완료", 사업 중단·이탈이면 점수가 높아도 "후순위". (계약서까지 보냈다가 연락이 끊긴 10점짜리 리드가 1등급 자리를 차지하면 안 되기 때문)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+> ⚠️ 스코어링 가중치는 실제 영업 경험 기반의 휴리스틱 규칙이며, 전환 데이터가 쌓이면 통계적으로 보정할 계획이다.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+그 외 설계 결정:
 
-## Learn More
+- **분모가 0이면 `null`을 반환**하고 화면에 "–"로 표시한다. 전환율 0%와 "데이터 없음"은 다른 정보다.
+- **오늘 날짜 의존 로직은 `getToday()`로 분리** — "연락 요망" 같은 규칙을 테스트에서 날짜를 주입해 검증할 수 있다.
+- **월간 집계는 코호트 방식** — "7월 신규 리드 중 계약된 수"로 계산해 유입 시점과 성과를 짝지었다.
 
-To learn more about Next.js, take a look at the following resources:
+## 기술 스택과 선택 이유
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| 선택 | 이유 |
+|---|---|
+| **Next.js (App Router) + TypeScript** | 화면 단위 라우팅이 명확하고, 도메인 타입(리드 상태·이탈 사유 등)을 유니언 타입으로 강제해 잘못된 데이터 입력을 컴파일 단계에서 차단 |
+| **Tailwind CSS (컴포넌트 직접 구현)** | UI 라이브러리 의존 없이 가볍게. 등급은 색상+텍스트 라벨을 병기해 색각 이상에도 대응 |
+| **localStorage + repository 패턴** | MVP는 서버 없이 완결. 저장소 접근을 `lib/storage.ts` 한 곳에 격리해 이후 Supabase로 갈아탈 때 화면 코드를 건드리지 않아도 됨 |
+| **Vitest (테스트 68건)** | 점수·등급 경계값, 강제 규칙 우선순위, 분모 0 방어 등 **비즈니스 규칙을 전부 순수 함수로 분리해 테스트** |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 실행 방법
 
-## Deploy on Vercel
+```bash
+npm install
+npm run dev    # http://localhost:3000
+npm test       # 단위 테스트 68건
+npm run build  # 프로덕션 빌드
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+첫 방문 시 스토리형 더미 데이터가 자동 로드된다(모든 이름·금액은 가상). 상단 "예시 데이터로 초기화" 버튼으로 언제든 처음 상태로 되돌릴 수 있다.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 프로젝트 구조
+
+```
+app/            # 화면 (dashboard · leads · channels · report · threads)
+components/     # 테이블·모달·배지·카드
+lib/
+  scoring.ts    # 리드 점수·등급·연락요망 (순수 함수)
+  channel.ts    # 퍼널 지표·CPL·CAC
+  report.ts     # 월간 자동 집계 + 복사용 텍스트 생성
+  threads.ts    # 스레드 반응률·토픽별 집계
+  storage.ts    # localStorage repository
+  today.ts      # getToday() — 날짜 의존 로직 분리
+data/seed.ts    # 스토리형 더미 데이터
+tests/          # Vitest 단위 테스트
+```
+
+## 배운 점
+
+- **판단 기준을 코드로 쓰면 기준이 좋아진다.** "왜 이 리드가 1등급인가"를 함수로 옮기는 과정에서 규칙의 빈틈(계약 직전 이탈 리드 처리 등)이 드러나 강제 규칙을 추가하게 됐다.
+- **0과 "없음"의 구분** 같은 디테일이 보고의 신뢰도를 만든다.
+- **로직과 화면의 분리**(순수 함수 + repository)가 테스트와 확장을 둘 다 쉽게 만든다.
+
+## 다음 개선 (로드맵)
+
+- 재계약 헬스스코어 (만기 임박 고객 관리)
+- 주간 성과 뷰·영업 실험 로그
+- Supabase 영속화 + 로그인 (팀 단위 사용)
+- 스코어링 가중치의 데이터 기반 보정
