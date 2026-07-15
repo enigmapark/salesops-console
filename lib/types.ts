@@ -26,7 +26,17 @@ export type LostReason =
 
 export type Product = "링고" | "뉴로";
 export type LeadType = "신규창간" | "이관" | "기능문의" | "가격문의";
-export type LeadStatus = "신규" | "상담중" | "견적" | "계약" | "보류" | "이탈";
+// 세일즈 퍼널 단계 순서: 신규 → 1차 연락 → 미팅 → 제안·견적 → 계약 검토 → 계약
+// (보류·이탈은 퍼널 밖 상태)
+export type LeadStatus =
+  | "신규"
+  | "1차 연락"
+  | "미팅"
+  | "제안·견적"
+  | "계약 검토"
+  | "계약"
+  | "보류"
+  | "이탈";
 export type Grade = "1등급" | "2등급" | "3등급" | "후순위" | "계약완료";
 
 export interface Lead {

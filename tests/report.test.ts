@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { seedData } from "../data/seed";
-import { availableMonths, buildCopyText, buildMonthlyReport, productMonthly } from "../lib/report";
+import {
+  availableMonths,
+  buildCopyText,
+  buildInsights,
+  buildMonthlyReport,
+  deltaCountLabel,
+  deltaLabel,
+  prevMonthOf,
+  productMonthly,
+} from "../lib/report";
+import { migrateLeadStatus } from "../lib/storage";
 
 describe("productMonthly — 월·제품 기준 코호트 집계", () => {
   it("2026-06 링고: 한빛일보·푸른경제 2건, 계약 0건", () => {
@@ -57,6 +67,67 @@ describe("availableMonths", () => {
     expect(months).toContain("2026-03");
     // 내림차순 확인
     expect([...months].sort().reverse()).toEqual(months);
+  });
+});
+
+describe("전월 대비 (prevMonthOf·deltaLabel)", () => {
+  it("전월 계산: 연 경계 포함", () => {
+    expect(prevMonthOf("2026-07")).toBe("2026-06");
+    expect(prevMonthOf("2026-01")).toBe("2025-12");
+  });
+
+  it("deltaLabel: 비율 표기와 예외 케이스", () => {
+    expect(deltaLabel(25, 21)).toBe("전월 대비 +19%");
+    expect(deltaLabel(10, 20)).toBe("전월 대비 -50%");
+    expect(deltaLabel(5, 5)).toBe("전월과 동일");
+    expect(deltaLabel(3, 0)).toBe("전월 0건 → 3건");
+  });
+
+  it("deltaCountLabel: 건수 표기", () => {
+    expect(deltaCountLabel(4, 2)).toBe("전월 대비 +2건");
+    expect(deltaCountLabel(1, 1)).toBe("전월과 동일");
+  });
+});
+
+describe("buildInsights — 자동 요약·권장 액션", () => {
+  const insights = buildInsights(seedData, "2026-07", "2026-07-15");
+
+  it("신규 리드 증감이 첫 줄에 나온다", () => {
+    expect(insights.summary[0]).toContain("전체 신규 리드 1건");
+    expect(insights.summary[0]).toContain("전월 대비");
+  });
+
+  it("전환율 최고 채널(커뮤니티)이 요약에 포함된다", () => {
+    expect(insights.summary.join("\n")).toContain("커뮤니티");
+  });
+
+  it("견적·계약 검토 단계 정체와 미계약 사유가 요약에 포함된다", () => {
+    const text = insights.summary.join("\n");
+    expect(text).toContain("제안·견적/계약 검토 단계");
+    expect(text).toContain("연락두절");
+  });
+
+  it("권장 액션이 1건 이상 생성된다", () => {
+    expect(insights.recommendations.length).toBeGreaterThan(0);
+  });
+
+  it("복사용 텍스트에 요약·권장 액션 섹션이 붙는다", () => {
+    const r = buildMonthlyReport(seedData, "2026-07");
+    const text = buildCopyText(r, undefined, insights);
+    expect(text).toContain("■ 핵심 요약");
+    expect(text).toContain("■ 다음 달 권장 액션");
+  });
+});
+
+describe("migrateLeadStatus — v1 상태값 변환", () => {
+  it("상담중 → 1차 연락, 견적 → 제안·견적", () => {
+    expect(migrateLeadStatus("상담중")).toBe("1차 연락");
+    expect(migrateLeadStatus("견적")).toBe("제안·견적");
+  });
+
+  it("새 단계 이름은 그대로 통과", () => {
+    expect(migrateLeadStatus("계약")).toBe("계약");
+    expect(migrateLeadStatus("미팅")).toBe("미팅");
   });
 });
 

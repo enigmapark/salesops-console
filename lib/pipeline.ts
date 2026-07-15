@@ -1,7 +1,14 @@
 import type { Lead, LeadStatus } from "./types";
 
 // 세일즈 퍼널 — 리드 상태를 단계 순서로 세어 제품별로 비교한다.
-export const PIPELINE_STAGES: LeadStatus[] = ["신규", "상담중", "견적", "계약"];
+export const PIPELINE_STAGES: LeadStatus[] = [
+  "신규",
+  "1차 연락",
+  "미팅",
+  "제안·견적",
+  "계약 검토",
+  "계약",
+];
 export const OFF_PIPELINE: LeadStatus[] = ["보류", "이탈"]; // 퍼널 밖 상태
 
 export interface StageRow {

@@ -4,7 +4,15 @@ import { useEffect, useMemo, useState } from "react";
 import { KpiCard } from "@/components/KpiCard";
 import { dealRate, isFreeChannel } from "@/lib/channel";
 import { fmtNum, fmtPct, fmtWon } from "@/lib/format";
-import { availableMonths, buildCopyText, buildMonthlyReport } from "@/lib/report";
+import {
+  availableMonths,
+  buildCopyText,
+  buildInsights,
+  buildMonthlyReport,
+  deltaCountLabel,
+  deltaLabel,
+  prevMonthOf,
+} from "@/lib/report";
 import { getToday } from "@/lib/today";
 import { useAppData } from "@/lib/use-app-data";
 import type { ReportComment } from "@/lib/types";
@@ -39,6 +47,14 @@ export default function ReportPage() {
 
   const months = useMemo(() => (data ? availableMonths(data) : []), [data]);
   const report = useMemo(() => (data ? buildMonthlyReport(data, month) : null), [data, month]);
+  const prevReport = useMemo(
+    () => (data ? buildMonthlyReport(data, prevMonthOf(month)) : null),
+    [data, month],
+  );
+  const insights = useMemo(
+    () => (data ? buildInsights(data, month, getToday()) : null),
+    [data, month],
+  );
 
   if (!data || !report) {
     return <p className="py-16 text-center text-sm text-zinc-400">불러오는 중…</p>;
@@ -64,7 +80,7 @@ export default function ReportPage() {
   const generateCopyText = () => {
     // 화면의 최신 코멘트(저장 전 입력 포함)로 생성하고, 저장도 같이 해 둔다
     saveComment();
-    setCopyText(buildCopyText(report, { ...draft, month }));
+    setCopyText(buildCopyText(report, { ...draft, month }, insights ?? undefined));
     setCopied(false);
   };
 
@@ -109,12 +125,12 @@ export default function ReportPage() {
         <KpiCard
           label="링고 · 신규 리드"
           value={fmtNum(report.lingo.newLeads)}
-          sub={`계약 ${report.lingo.deals}건 · 전환율 ${fmtPct(report.lingo.conversionRate)}`}
+          sub={`${prevReport ? deltaLabel(report.lingo.newLeads, prevReport.lingo.newLeads) : ""} · 계약 ${report.lingo.deals}건 · 전환율 ${fmtPct(report.lingo.conversionRate)}`}
         />
         <KpiCard
           label="뉴로 · 신규 리드"
           value={fmtNum(report.neuro.newLeads)}
-          sub={`계약 ${report.neuro.deals}건 · 전환율 ${fmtPct(report.neuro.conversionRate)}`}
+          sub={`${prevReport ? deltaLabel(report.neuro.newLeads, prevReport.neuro.newLeads) : ""} · 계약 ${report.neuro.deals}건 · 전환율 ${fmtPct(report.neuro.conversionRate)}`}
         />
         <KpiCard
           label="채널 합계"
@@ -124,9 +140,37 @@ export default function ReportPage() {
         <KpiCard
           label="계약 건수"
           value={`${fmtNum(monthDealCount)}건`}
-          sub={`링고 ${report.lingo.deals}건 · 뉴로 ${report.neuro.deals}건${monthDealAmount > 0 ? ` · 예상 ${fmtWon(monthDealAmount)}` : ""}`}
+          sub={`${prevReport ? deltaCountLabel(monthDealCount, prevReport.lingo.deals + prevReport.neuro.deals) : ""} · 링고 ${report.lingo.deals}건 · 뉴로 ${report.neuro.deals}건${monthDealAmount > 0 ? ` · 예상 ${fmtWon(monthDealAmount)}` : ""}`}
         />
       </div>
+
+      {/* 자동 요약 + 권장 액션 */}
+      {insights && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <section className="rounded-xl border border-zinc-200 bg-white p-4">
+            <h2 className="mb-3 text-sm font-semibold">{month} 핵심 요약 (자동)</h2>
+            <ul className="space-y-1.5 text-sm text-zinc-700">
+              {insights.summary.map((s, i) => (
+                <li key={i} className="flex gap-2">
+                  <span className="text-zinc-300">•</span>
+                  <span>{s}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+          <section className="rounded-xl border border-zinc-200 bg-white p-4">
+            <h2 className="mb-3 text-sm font-semibold">다음 달 권장 액션 (자동)</h2>
+            <ul className="space-y-1.5 text-sm text-zinc-700">
+              {insights.recommendations.map((r, i) => (
+                <li key={i} className="flex gap-2">
+                  <span className="font-semibold text-zinc-400">{i + 1}.</span>
+                  <span>{r}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      )}
 
       {/* 채널별 상세 */}
       <section className="rounded-xl border border-zinc-200 bg-white p-4">

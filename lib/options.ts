@@ -37,6 +37,15 @@ export const LOST_REASONS: LostReason[] = [
 
 export const PRODUCTS: Product[] = ["링고", "뉴로"];
 export const LEAD_TYPES: LeadType[] = ["신규창간", "이관", "기능문의", "가격문의"];
-export const LEAD_STATUSES: LeadStatus[] = ["신규", "상담중", "견적", "계약", "보류", "이탈"];
+export const LEAD_STATUSES: LeadStatus[] = [
+  "신규",
+  "1차 연락",
+  "미팅",
+  "제안·견적",
+  "계약 검토",
+  "계약",
+  "보류",
+  "이탈",
+];
 export const GRADES: Grade[] = ["1등급", "2등급", "3등급", "후순위", "계약완료"];
 export const THREAD_TOPICS: ThreadTopic[] = ["신문사", "SEO", "AI", "마케팅", "기타"];

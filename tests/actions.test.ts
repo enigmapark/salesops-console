@@ -10,7 +10,7 @@ function makeLead(overrides: Partial<Lead> = {}): Lead {
     source: "커뮤니티",
     product: "링고",
     type: "신규창간",
-    status: "상담중",
+    status: "1차 연락",
     hasQuote: false,
     hadMeeting: false,
     mentionedDate: false,
@@ -71,12 +71,12 @@ describe("pipelineBreakdown — 단계별 제품 비교", () => {
     const { funnel, off } = pipelineBreakdown([
       makeLead({ status: "신규", product: "링고" }),
       makeLead({ id: "2", status: "신규", product: "뉴로" }),
-      makeLead({ id: "3", status: "견적", product: "링고" }),
+      makeLead({ id: "3", status: "제안·견적", product: "링고" }),
       makeLead({ id: "4", status: "이탈", product: "링고" }),
     ]);
     const 신규 = funnel.find((r) => r.stage === "신규");
     expect(신규).toMatchObject({ lingo: 1, neuro: 1, total: 2 });
-    expect(funnel.find((r) => r.stage === "견적")?.total).toBe(1);
+    expect(funnel.find((r) => r.stage === "제안·견적")?.total).toBe(1);
     expect(off.find((r) => r.stage === "이탈")?.lingo).toBe(1);
   });
 });

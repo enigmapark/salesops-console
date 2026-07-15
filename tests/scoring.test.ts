@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { calcGrade, calcScore, needsContact, sortByScoreDesc } from "../lib/scoring";
 import type { Lead } from "../lib/types";
 
-// 테스트용 기본 리드: 체크박스 전부 해제, 상태 "상담중"
+// 테스트용 기본 리드: 체크박스 전부 해제, 상태 "1차 연락"
 function makeLead(overrides: Partial<Lead> = {}): Lead {
   return {
     id: "test-1",
@@ -10,7 +10,7 @@ function makeLead(overrides: Partial<Lead> = {}): Lead {
     source: "커뮤니티",
     product: "링고",
     type: "신규창간",
-    status: "상담중",
+    status: "1차 연락",
     hasQuote: false,
     hadMeeting: false,
     mentionedDate: false,
