@@ -65,7 +65,7 @@ describe("buildCopyText", () => {
 
   it("핵심 수치가 텍스트에 포함된다", () => {
     const text = buildCopyText(r);
-    expect(text).toContain("[SalesOps 월간 보고] 2026-07");
+    expect(text).toContain("[Account Team 월간 보고] 2026-07");
     expect(text).toContain("리드 64건");
     expect(text).toContain("유입 리드 6건");
   });

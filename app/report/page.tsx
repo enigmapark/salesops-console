@@ -102,7 +102,7 @@ export default function ReportPage() {
         </div>
       </div>
 
-      <h2 className="hidden text-lg font-bold print:block">[SalesOps 월간 보고] {month}</h2>
+      <h2 className="hidden text-lg font-bold print:block">[Account Team 월간 보고] {month}</h2>
 
       {/* 자동 집계 지표 */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">

@@ -70,6 +70,9 @@ export interface ChannelFunnel {
   quotes: number;
   deals: number;
   spend: number; // 원, 무료 채널은 0
+  // 유료 채널 광고 지표 (선택 — 무료 채널은 비워둠)
+  adImpressions?: number; // 광고 노출
+  adClicks?: number; // 광고 클릭
 }
 
 export type ThreadTopic = "신문사" | "SEO" | "AI" | "마케팅" | "기타";

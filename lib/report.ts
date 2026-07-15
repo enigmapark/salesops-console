@@ -59,7 +59,7 @@ export function availableMonths(data: AppData): string[] {
 // "복사용 텍스트 생성" — 슬랙에 그대로 붙여넣는 플레인 텍스트
 export function buildCopyText(r: MonthlyReport, comment?: ReportComment): string {
   const lines: string[] = [];
-  lines.push(`[SalesOps 월간 보고] ${r.month}`);
+  lines.push(`[Account Team 월간 보고] ${r.month}`);
   lines.push("");
   lines.push("■ 링고 (인터넷신문 CMS)");
   lines.push(

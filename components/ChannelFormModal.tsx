@@ -104,6 +104,47 @@ export function ChannelFormModal({
           ))}
         </div>
 
+        {/* 유료 채널 광고 지표 (선택 입력) */}
+        <div className="rounded-lg border border-blue-100 bg-blue-50/40 p-3">
+          <p className="mb-2 text-xs font-semibold text-blue-700">
+            광고 지표 (유료 채널용 — 무료 채널은 비워두세요)
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>광고 노출</label>
+              <input
+                type="number"
+                min={0}
+                className={inputCls}
+                value={draft.adImpressions ?? ""}
+                onChange={(e) =>
+                  setDraft((d) => ({
+                    ...d,
+                    adImpressions:
+                      e.target.value === "" ? undefined : Math.max(0, Number(e.target.value) || 0),
+                  }))
+                }
+              />
+            </div>
+            <div>
+              <label className={labelCls}>광고 클릭</label>
+              <input
+                type="number"
+                min={0}
+                className={inputCls}
+                value={draft.adClicks ?? ""}
+                onChange={(e) =>
+                  setDraft((d) => ({
+                    ...d,
+                    adClicks:
+                      e.target.value === "" ? undefined : Math.max(0, Number(e.target.value) || 0),
+                  }))
+                }
+              />
+            </div>
+          </div>
+        </div>
+
         <div className="flex justify-end gap-2 pt-1">
           <button
             onClick={onClose}

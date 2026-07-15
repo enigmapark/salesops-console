@@ -148,6 +148,8 @@ export const seedData: AppData = {
       quotes: 3,
       deals: 1,
       spend: 1500000,
+      adImpressions: 850000,
+      adClicks: 3400,
     },
     {
       id: "funnel-naver",
@@ -161,6 +163,8 @@ export const seedData: AppData = {
       quotes: 2,
       deals: 1,
       spend: 900000,
+      adImpressions: 120000,
+      adClicks: 1800,
     },
     {
       id: "funnel-coldmail",

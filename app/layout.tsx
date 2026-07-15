@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SalesOps Console",
-  description: "리드 스코어링·채널 퍼널·월간 보고를 한곳에서 관리하는 SalesOps 대시보드",
+  title: "Account Team Monthly Report",
+  description: "리드 스코어링·채널 퍼널·월간 보고를 한곳에서 관리하는 어카운트팀 대시보드",
 };
 
 export default function RootLayout({

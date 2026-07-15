@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   cac,
+  cpc,
   cpl,
+  ctr,
   dealRate,
   isFreeChannel,
   mqlRate,
@@ -84,6 +86,26 @@ describe("CPL·CAC", () => {
   it("isFreeChannel: spend=0이면 무료 채널", () => {
     expect(isFreeChannel(makeFunnel({ spend: 0 }))).toBe(true);
     expect(isFreeChannel(makeFunnel({ spend: 1 }))).toBe(false);
+  });
+});
+
+describe("유료 채널 광고 지표 (CTR·CPC)", () => {
+  it("CTR = 클릭/노출, CPC = 소진/클릭", () => {
+    const paid = makeFunnel({ spend: 900000, adImpressions: 120000, adClicks: 1800 });
+    expect(ctr(paid)).toBe(1800 / 120000);
+    expect(cpc(paid)).toBe(900000 / 1800);
+  });
+
+  it("광고 지표를 입력하지 않으면(무료 채널 등) null", () => {
+    const free = makeFunnel();
+    expect(ctr(free)).toBeNull();
+    expect(cpc(free)).toBeNull();
+  });
+
+  it("노출·클릭이 0이면 분모 0 방어로 null", () => {
+    const zero = makeFunnel({ spend: 0, adImpressions: 0, adClicks: 0 });
+    expect(ctr(zero)).toBeNull();
+    expect(cpc(zero)).toBeNull();
   });
 });
 

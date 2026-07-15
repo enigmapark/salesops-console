@@ -3,7 +3,17 @@
 import { useState } from "react";
 import { ChannelFormModal } from "@/components/ChannelFormModal";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { cac, cpl, dealRate, isFreeChannel, mqlRate, sortByDealRateDesc, sqlRate } from "@/lib/channel";
+import {
+  cac,
+  cpc,
+  cpl,
+  ctr,
+  dealRate,
+  isFreeChannel,
+  mqlRate,
+  sortByDealRateDesc,
+  sqlRate,
+} from "@/lib/channel";
 import { fmtNum, fmtPct, fmtWon } from "@/lib/format";
 import { useAppData } from "@/lib/use-app-data";
 import type { ChannelFunnel } from "@/lib/types";
@@ -21,6 +31,10 @@ export default function ChannelsPage() {
   if (!data) return <p className="py-16 text-center text-sm text-zinc-400">불러오는 중…</p>;
 
   const funnels = sortByDealRateDesc(data.funnels);
+  // 유료 채널 광고 성과 — 소진 금액 큰 순
+  const paidFunnels = data.funnels
+    .filter((f) => !isFreeChannel(f))
+    .sort((a, b) => b.spend - a.spend);
 
   const saveFunnel = (funnel: ChannelFunnel) =>
     update((d) => {
@@ -128,6 +142,56 @@ export default function ChannelsPage() {
           </tbody>
         </table>
       </div>
+
+      {/* 유료 채널 광고 성과 상세 */}
+      {paidFunnels.length > 0 && (
+        <section className="mt-4 rounded-xl border border-zinc-200 bg-white p-4">
+          <h2 className="mb-1 text-sm font-semibold">유료 채널 광고 성과</h2>
+          <p className="mb-3 text-xs text-zinc-500">
+            소진 금액 큰 순 · 노출·클릭은 채널 수정에서 입력합니다
+          </p>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[760px] text-sm">
+              <thead>
+                <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500">
+                  <th className="py-2 font-medium">채널</th>
+                  <th className="py-2 font-medium">기간</th>
+                  <th className="py-2 text-right font-medium">소진 금액</th>
+                  <th className="py-2 text-right font-medium">노출</th>
+                  <th className="py-2 text-right font-medium">클릭</th>
+                  <th className="py-2 text-right font-medium">CTR</th>
+                  <th className="py-2 text-right font-medium">CPC</th>
+                  <th className="py-2 text-right font-medium">리드</th>
+                  <th className="py-2 text-right font-medium">CPL</th>
+                  <th className="py-2 text-right font-medium">계약</th>
+                  <th className="py-2 text-right font-medium">CAC</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paidFunnels.map((f) => (
+                  <tr key={f.id} className="border-b border-zinc-100 last:border-0">
+                    <td className="py-2.5 font-medium">{f.source}</td>
+                    <td className="py-2.5 text-zinc-500">{f.period}</td>
+                    <td className="py-2.5 text-right font-semibold tabular-nums">{fmtWon(f.spend)}</td>
+                    <td className="py-2.5 text-right tabular-nums">
+                      {f.adImpressions != null ? fmtNum(f.adImpressions) : "–"}
+                    </td>
+                    <td className="py-2.5 text-right tabular-nums">
+                      {f.adClicks != null ? fmtNum(f.adClicks) : "–"}
+                    </td>
+                    <td className="py-2.5 text-right tabular-nums">{fmtPct(ctr(f), 2)}</td>
+                    <td className="py-2.5 text-right tabular-nums">{fmtWon(cpc(f))}</td>
+                    <td className="py-2.5 text-right tabular-nums">{fmtNum(f.leads)}</td>
+                    <td className="py-2.5 text-right tabular-nums">{fmtWon(cpl(f))}</td>
+                    <td className="py-2.5 text-right tabular-nums">{fmtNum(f.deals)}</td>
+                    <td className="py-2.5 text-right tabular-nums">{fmtWon(cac(f))}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
 
       {modal?.mode === "add" && <ChannelFormModal onSave={saveFunnel} onClose={() => setModal(null)} />}
       {modal?.mode === "edit" && (

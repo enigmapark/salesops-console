@@ -32,6 +32,17 @@ export function isFreeChannel(f: ChannelFunnel): boolean {
   return f.spend === 0;
 }
 
+// 유료 채널 광고 지표 — 입력이 없으면(무료 채널 등) null
+export function ctr(f: ChannelFunnel): number | null {
+  if (f.adImpressions == null || f.adClicks == null) return null;
+  return safeDiv(f.adClicks, f.adImpressions);
+}
+
+export function cpc(f: ChannelFunnel): number | null {
+  if (f.adClicks == null) return null;
+  return safeDiv(f.spend, f.adClicks);
+}
+
 // 채널 목록 정렬: 계약전환율 내림차순 (전환율 없는 채널은 뒤로)
 export function sortByDealRateDesc(funnels: ChannelFunnel[]): ChannelFunnel[] {
   return [...funnels].sort((a, b) => {
