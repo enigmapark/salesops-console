@@ -19,7 +19,7 @@ export function migrateLeadStatus(status: string): LeadStatus {
 function migrateV1(parsed: Partial<AppData>): AppData {
   return {
     leads: (parsed.leads ?? []).map((l) => ({ ...l, status: migrateLeadStatus(l.status) })),
-    funnels: parsed.funnels ?? [],
+    funnels: (parsed.funnels ?? []).map((f) => ({ ...f, product: f.product ?? "공통" })),
     threadPosts: parsed.threadPosts ?? [],
     reportComments: parsed.reportComments ?? [],
   };
@@ -44,7 +44,8 @@ export function loadAppData(): AppData {
       const parsed = JSON.parse(raw) as Partial<AppData>;
       return {
         leads: parsed.leads ?? [],
-        funnels: parsed.funnels ?? [],
+        // 제품 필드가 없던 시절 데이터는 "공통"으로 보정
+        funnels: (parsed.funnels ?? []).map((f) => ({ ...f, product: f.product ?? "공통" })),
         threadPosts: parsed.threadPosts ?? [],
         reportComments: parsed.reportComments ?? [],
       };

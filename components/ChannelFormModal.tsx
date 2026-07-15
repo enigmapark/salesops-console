@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { genId } from "@/lib/id";
-import { SOURCES } from "@/lib/options";
+import { PRODUCT_SCOPES, SOURCES } from "@/lib/options";
 import type { ChannelFunnel } from "@/lib/types";
 import { Modal } from "./Modal";
 
@@ -26,6 +26,7 @@ function emptyFunnel(): ChannelFunnel {
   return {
     id: genId(),
     period: new Date().toISOString().slice(0, 7),
+    product: "링고",
     source: "커뮤니티",
     activities: 0,
     leads: 0,
@@ -64,7 +65,7 @@ export function ChannelFormModal({
   return (
     <Modal title={initial ? "채널 퍼널 편집" : "채널 퍼널 추가"} onClose={onClose}>
       <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           <div>
             <label className={labelCls}>기간 (월)</label>
             <input
@@ -73,6 +74,20 @@ export function ChannelFormModal({
               value={draft.period}
               onChange={(e) => setDraft((d) => ({ ...d, period: e.target.value }))}
             />
+          </div>
+          <div>
+            <label className={labelCls}>제품</label>
+            <select
+              className={inputCls}
+              value={draft.product}
+              onChange={(e) =>
+                setDraft((d) => ({ ...d, product: e.target.value as ChannelFunnel["product"] }))
+              }
+            >
+              {PRODUCT_SCOPES.map((p) => (
+                <option key={p}>{p}</option>
+              ))}
+            </select>
           </div>
           <div>
             <label className={labelCls}>채널</label>

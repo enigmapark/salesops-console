@@ -44,11 +44,6 @@ export default function DashboardPage() {
   const monthPosts = data.threadPosts.filter((p) => p.date.startsWith(thisMonth));
   const threadLeads = monthPosts.reduce((sum, p) => sum + p.leadsGenerated, 0);
 
-  const gradeCounts = GRADES.map((g) => ({
-    grade: g,
-    count: grades.filter((x) => x === g).length,
-  }));
-
   const funnels = sortByDealRateDesc(data.funnels);
 
   // 제품별 리드·계약 현황 (링고 / 뉴로 / 합계)
@@ -80,15 +75,26 @@ export default function DashboardPage() {
   const actions = todaysActions(data.leads, today);
   const { funnel, off } = pipelineBreakdown(data.leads);
 
-  // 차트 데이터
-  const channelChartData = funnels
-    .filter((f) => dealRate(f) !== null)
-    .map((f) => ({
-      name: f.source,
-      rate: Math.round((dealRate(f) ?? 0) * 1000) / 10,
-      free: isFreeChannel(f),
-    }));
-  const gradeChartData = gradeCounts.map(({ grade, count }) => ({ grade, count }));
+  // 제품별 채널 데이터 (링고/뉴로 구분, 공통은 별도)
+  const funnelsBy = (p: "링고" | "뉴로") => funnels.filter((f) => f.product === p);
+  const commonFunnels = funnels.filter((f) => f.product === "공통");
+  const channelChartDataBy = (p: "링고" | "뉴로") =>
+    funnelsBy(p)
+      .filter((f) => dealRate(f) !== null)
+      .map((f) => ({
+        name: f.source,
+        rate: Math.round((dealRate(f) ?? 0) * 1000) / 10,
+        free: isFreeChannel(f),
+      }));
+
+  // 등급 분포 — 제품 비교
+  const gradePairs = data.leads.map((l) => ({ product: l.product, grade: calcGrade(l) }));
+  const gradeRows = GRADES.map((g) => ({
+    grade: g,
+    lingo: gradePairs.filter((x) => x.grade === g && x.product === "링고").length,
+    neuro: gradePairs.filter((x) => x.grade === g && x.product === "뉴로").length,
+    total: gradePairs.filter((x) => x.grade === g).length,
+  }));
 
   return (
     <div className="space-y-6">
@@ -292,90 +298,145 @@ export default function DashboardPage() {
         />
       </div>
 
+      {/* 채널별 계약전환율 — 링고 / 뉴로 각각 */}
       <div className="grid gap-4 lg:grid-cols-2">
-        {/* 채널별 계약전환율 차트 */}
-        <section className="rounded-xl border border-zinc-200 bg-white p-4">
-          <h2 className="mb-3 text-sm font-semibold">채널별 계약전환율</h2>
-          {channelChartData.length === 0 ? (
-            <p className="py-8 text-center text-sm text-zinc-400">데이터가 없습니다.</p>
-          ) : (
-            <ChannelConversionChart data={channelChartData} />
-          )}
-        </section>
-
-        {/* 등급 분포 차트 */}
-        <section className="rounded-xl border border-zinc-200 bg-white p-4">
-          <h2 className="mb-3 text-sm font-semibold">등급 분포 (차트)</h2>
-          <GradeDistributionChart data={gradeChartData} />
-        </section>
+        {(["링고", "뉴로"] as const).map((p) => {
+          const chartData = channelChartDataBy(p);
+          return (
+            <section key={p} className="rounded-xl border border-zinc-200 bg-white p-4">
+              <h2 className="mb-3 text-sm font-semibold">채널별 계약전환율 · {p}</h2>
+              {chartData.length === 0 ? (
+                <p className="py-8 text-center text-sm text-zinc-400">
+                  {p} 채널 데이터가 없습니다.
+                </p>
+              ) : (
+                <ChannelConversionChart data={chartData} />
+              )}
+            </section>
+          );
+        })}
       </div>
 
+      {/* 등급 분포 — 링고/뉴로 비교 (차트 + 표) */}
       <div className="grid gap-4 lg:grid-cols-2">
-        {/* 등급 분포 */}
         <section className="rounded-xl border border-zinc-200 bg-white p-4">
-          <h2 className="mb-3 text-sm font-semibold">등급 분포</h2>
+          <h2 className="mb-3 text-sm font-semibold">등급 분포 (차트)</h2>
+          <GradeDistributionChart
+            data={gradeRows.map(({ grade, lingo, neuro }) => ({ grade, lingo, neuro }))}
+          />
+        </section>
+        <section className="rounded-xl border border-zinc-200 bg-white p-4">
+          <h2 className="mb-3 text-sm font-semibold">등급 분포 (표)</h2>
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500">
                 <th className="py-2 font-medium">등급</th>
-                <th className="py-2 text-right font-medium">리드 수</th>
+                <th className="py-2 text-right font-medium">링고</th>
+                <th className="py-2 text-right font-medium">뉴로</th>
+                <th className="py-2 text-right font-medium">전체</th>
                 <th className="py-2 text-right font-medium">비중</th>
               </tr>
             </thead>
             <tbody>
-              {gradeCounts.map(({ grade, count }) => (
+              {gradeRows.map(({ grade, lingo, neuro, total }) => (
                 <tr key={grade} className="border-b border-zinc-100 last:border-0">
                   <td className="py-2">
                     <GradeBadge grade={grade} />
                   </td>
-                  <td className="py-2 text-right tabular-nums">{count}</td>
+                  <td className="py-2 text-right tabular-nums">{lingo}</td>
+                  <td className="py-2 text-right tabular-nums">{neuro}</td>
+                  <td className="py-2 text-right font-semibold tabular-nums">{total}</td>
                   <td className="py-2 text-right tabular-nums text-zinc-500">
-                    {fmtPct(safeDiv(count, totalLeads), 0)}
+                    {fmtPct(safeDiv(total, totalLeads), 0)}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </section>
-
-        {/* 채널 요약 */}
-        <section className="rounded-xl border border-zinc-200 bg-white p-4">
-          <h2 className="mb-3 text-sm font-semibold">채널 요약 (계약전환율 순)</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[420px] text-sm">
-              <thead>
-                <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500">
-                  <th className="py-2 font-medium">채널</th>
-                  <th className="py-2 text-right font-medium">리드</th>
-                  <th className="py-2 text-right font-medium">계약</th>
-                  <th className="py-2 text-right font-medium">전환율</th>
-                  <th className="py-2 text-right font-medium">CPL</th>
-                  <th className="py-2 text-right font-medium">CAC</th>
-                </tr>
-              </thead>
-              <tbody>
-                {funnels.map((f) => (
-                  <tr key={f.id} className="border-b border-zinc-100 last:border-0">
-                    <td className="py-2">
-                      {f.source}
-                      {isFreeChannel(f) && (
-                        <span className="ml-1 rounded-full border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">
-                          무료
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-2 text-right tabular-nums">{fmtNum(f.leads)}</td>
-                    <td className="py-2 text-right tabular-nums">{fmtNum(f.deals)}</td>
-                    <td className="py-2 text-right font-semibold tabular-nums">{fmtPct(dealRate(f))}</td>
-                    <td className="py-2 text-right tabular-nums text-zinc-500">{fmtWon(cpl(f))}</td>
-                    <td className="py-2 text-right tabular-nums text-zinc-500">{fmtWon(cac(f))}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
       </div>
+
+      {/* 채널 요약 — 링고 / 뉴로 각각 (계약전환율 순) */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        {(["링고", "뉴로"] as const).map((p) => {
+          const rows = funnelsBy(p);
+          return (
+            <section key={p} className="rounded-xl border border-zinc-200 bg-white p-4">
+              <h2 className="mb-3 text-sm font-semibold">채널 요약 · {p} (계약전환율 순)</h2>
+              {rows.length === 0 ? (
+                <p className="py-6 text-center text-sm text-zinc-400">{p} 채널 데이터가 없습니다.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[420px] text-sm">
+                    <thead>
+                      <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500">
+                        <th className="py-2 font-medium">채널</th>
+                        <th className="py-2 text-right font-medium">리드</th>
+                        <th className="py-2 text-right font-medium">계약</th>
+                        <th className="py-2 text-right font-medium">전환율</th>
+                        <th className="py-2 text-right font-medium">CPL</th>
+                        <th className="py-2 text-right font-medium">CAC</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rows.map((f) => (
+                        <tr key={f.id} className="border-b border-zinc-100 last:border-0">
+                          <td className="py-2">
+                            {f.source}
+                            {isFreeChannel(f) && (
+                              <span className="ml-1 rounded-full border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">
+                                무료
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-2 text-right tabular-nums">{fmtNum(f.leads)}</td>
+                          <td className="py-2 text-right tabular-nums">{fmtNum(f.deals)}</td>
+                          <td className="py-2 text-right font-semibold tabular-nums">
+                            {fmtPct(dealRate(f))}
+                          </td>
+                          <td className="py-2 text-right tabular-nums text-zinc-500">
+                            {fmtWon(cpl(f))}
+                          </td>
+                          <td className="py-2 text-right tabular-nums text-zinc-500">
+                            {fmtWon(cac(f))}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+          );
+        })}
+      </div>
+
+      {/* 공통 채널 (제품 구분 없이 운영 — 예: 스레드) */}
+      {commonFunnels.length > 0 && (
+        <section className="rounded-xl border border-zinc-200 bg-white p-4">
+          <h2 className="mb-3 text-sm font-semibold">공통 채널 (링고·뉴로 공용)</h2>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500">
+                <th className="py-2 font-medium">채널</th>
+                <th className="py-2 text-right font-medium">리드</th>
+                <th className="py-2 text-right font-medium">계약</th>
+                <th className="py-2 text-right font-medium">전환율</th>
+              </tr>
+            </thead>
+            <tbody>
+              {commonFunnels.map((f) => (
+                <tr key={f.id} className="border-b border-zinc-100 last:border-0">
+                  <td className="py-2">{f.source}</td>
+                  <td className="py-2 text-right tabular-nums">{fmtNum(f.leads)}</td>
+                  <td className="py-2 text-right tabular-nums">{fmtNum(f.deals)}</td>
+                  <td className="py-2 text-right font-semibold tabular-nums">{fmtPct(dealRate(f))}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
     </div>
   );
 }

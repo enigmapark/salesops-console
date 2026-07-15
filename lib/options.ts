@@ -5,6 +5,7 @@ import type {
   LeadType,
   LostReason,
   Product,
+  ProductScope,
   ThreadTopic,
 } from "./types";
 
@@ -36,6 +37,7 @@ export const LOST_REASONS: LostReason[] = [
 ];
 
 export const PRODUCTS: Product[] = ["링고", "뉴로"];
+export const PRODUCT_SCOPES: ProductScope[] = ["링고", "뉴로", "공통"];
 export const LEAD_TYPES: LeadType[] = ["신규창간", "이관", "기능문의", "가격문의"];
 export const LEAD_STATUSES: LeadStatus[] = [
   "신규",

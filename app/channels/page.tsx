@@ -30,7 +30,14 @@ export default function ChannelsPage() {
 
   if (!data) return <p className="py-16 text-center text-sm text-zinc-400">불러오는 중…</p>;
 
-  const funnels = sortByDealRateDesc(data.funnels);
+  // 제품별 그룹 (링고 / 뉴로 / 공통) — 데이터가 있는 그룹만 표시
+  const groups = (["링고", "뉴로", "공통"] as const)
+    .map((product) => ({
+      product,
+      rows: sortByDealRateDesc(data.funnels.filter((f) => (f.product ?? "공통") === product)),
+    }))
+    .filter((g) => g.rows.length > 0);
+
   // 유료 채널 광고 성과 — 소진 금액 큰 순
   const paidFunnels = data.funnels
     .filter((f) => !isFreeChannel(f))
@@ -66,7 +73,18 @@ export default function ChannelsPage() {
         </button>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white">
+      {groups.length === 0 && (
+        <div className="rounded-xl border border-zinc-200 bg-white px-3 py-10 text-center text-sm text-zinc-400">
+          아직 채널 데이터가 없습니다.
+        </div>
+      )}
+      {groups.map(({ product, rows }) => (
+      <div key={product} className="mb-4">
+        <h2 className="mb-2 text-sm font-semibold">
+          {product === "공통" ? "공통 채널 (링고·뉴로 공용)" : `${product} 채널`}
+          <span className="ml-1.5 font-normal text-zinc-400">({rows.length})</span>
+        </h2>
+        <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white">
         <table className="w-full min-w-[1000px] text-sm">
           <thead>
             <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500">
@@ -88,14 +106,7 @@ export default function ChannelsPage() {
             </tr>
           </thead>
           <tbody>
-            {funnels.length === 0 && (
-              <tr>
-                <td colSpan={15} className="px-3 py-10 text-center text-zinc-400">
-                  아직 채널 데이터가 없습니다.
-                </td>
-              </tr>
-            )}
-            {funnels.map((f) => (
+            {rows.map((f) => (
               <tr
                 key={f.id}
                 className={`border-b border-zinc-100 last:border-0 ${
@@ -141,7 +152,9 @@ export default function ChannelsPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
+      ))}
 
       {/* 유료 채널 광고 성과 상세 */}
       {paidFunnels.length > 0 && (
@@ -155,6 +168,7 @@ export default function ChannelsPage() {
               <thead>
                 <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500">
                   <th className="py-2 font-medium">채널</th>
+                  <th className="py-2 font-medium">제품</th>
                   <th className="py-2 font-medium">기간</th>
                   <th className="py-2 text-right font-medium">소진 금액</th>
                   <th className="py-2 text-right font-medium">노출</th>
@@ -171,6 +185,7 @@ export default function ChannelsPage() {
                 {paidFunnels.map((f) => (
                   <tr key={f.id} className="border-b border-zinc-100 last:border-0">
                     <td className="py-2.5 font-medium">{f.source}</td>
+                    <td className="py-2.5 text-zinc-600">{f.product}</td>
                     <td className="py-2.5 text-zinc-500">{f.period}</td>
                     <td className="py-2.5 text-right font-semibold tabular-nums">{fmtWon(f.spend)}</td>
                     <td className="py-2.5 text-right tabular-nums">

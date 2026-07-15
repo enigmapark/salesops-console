@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { GradeBadge } from "@/components/GradeBadge";
+import { KpiCard } from "@/components/KpiCard";
 import { LeadFormModal } from "@/components/LeadFormModal";
-import { fmtWon } from "@/lib/format";
+import { fmtNum, fmtWon } from "@/lib/format";
 import { GRADES, PRODUCTS, SOURCES } from "@/lib/options";
 import { calcGrade, calcScore, needsContact, sortByScoreDesc } from "@/lib/scoring";
 import { getToday } from "@/lib/today";
@@ -39,6 +40,14 @@ export default function LeadsPage() {
   );
   const leads = sortByScoreDesc(filtered);
   const contactCount = data.leads.filter((l) => needsContact(l, today)).length;
+
+  // 상단 요약 — 링고/뉴로 구분 집계
+  const summaryBy = (p: Product) => {
+    const rows = data.leads.filter((l) => l.product === p);
+    return { total: rows.length, deals: rows.filter((l) => l.status === "계약").length };
+  };
+  const lingoSum = summaryBy("링고");
+  const neuroSum = summaryBy("뉴로");
 
   const saveLead = (lead: Lead) =>
     update((d) => {
@@ -99,6 +108,17 @@ export default function LeadsPage() {
             + 리드 추가
           </button>
         </div>
+      </div>
+
+      <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <KpiCard
+          label="전체 리드"
+          value={fmtNum(data.leads.length)}
+          sub={`계약 ${lingoSum.deals + neuroSum.deals}건`}
+        />
+        <KpiCard label="링고 리드" value={fmtNum(lingoSum.total)} sub={`계약 ${lingoSum.deals}건`} />
+        <KpiCard label="뉴로 리드" value={fmtNum(neuroSum.total)} sub={`계약 ${neuroSum.deals}건`} />
+        <KpiCard label="연락 요망" value={fmtNum(contactCount)} sub="다음 연락일이 오늘이거나 지남" />
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white">

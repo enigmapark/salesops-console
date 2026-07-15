@@ -25,6 +25,8 @@ export type LostReason =
   | "기타";
 
 export type Product = "링고" | "뉴로";
+// 채널·스레드처럼 두 제품에 걸칠 수 있는 데이터의 제품 구분
+export type ProductScope = Product | "공통";
 export type LeadType = "신규창간" | "이관" | "기능문의" | "가격문의";
 // 세일즈 퍼널 단계 순서: 신규 → 1차 연락 → 미팅 → 제안·견적 → 계약 검토 → 계약
 // (보류·이탈은 퍼널 밖 상태)
@@ -71,6 +73,7 @@ export interface Lead {
 export interface ChannelFunnel {
   id: string;
   period: string; // 예: 2026-07
+  product: ProductScope; // 링고/뉴로는 반드시 구분, 정말 공용인 것만 "공통"
   source: AcquisitionSource;
   activities: number; // 발송·게시 등 활동 수
   leads: number;

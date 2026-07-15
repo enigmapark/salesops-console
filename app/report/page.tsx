@@ -227,42 +227,59 @@ export default function ReportPage() {
         </div>
       )}
 
-      {/* 채널별 상세 */}
+      {/* 채널별 상세 — 링고 / 뉴로 / 공통 구분 */}
       <section className="rounded-xl border border-zinc-200 bg-white p-4">
-        <h2 className="mb-3 text-sm font-semibold">{month} 채널별 계약전환율</h2>
+        <h2 className="mb-3 text-sm font-semibold">{month} 채널별 계약전환율 (퍼널 데이터)</h2>
         {report.funnels.length === 0 ? (
           <p className="py-4 text-center text-sm text-zinc-400">이 달의 채널 데이터가 없습니다.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[480px] text-sm">
-              <thead>
-                <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500">
-                  <th className="py-2 font-medium">채널</th>
-                  <th className="py-2 text-right font-medium">리드</th>
-                  <th className="py-2 text-right font-medium">계약</th>
-                  <th className="py-2 text-right font-medium">전환율</th>
-                  <th className="py-2 text-right font-medium">광고비</th>
-                </tr>
-              </thead>
-              <tbody>
-                {report.funnels.map((f) => (
-                  <tr key={f.id} className="border-b border-zinc-100 last:border-0">
-                    <td className="py-2">
-                      {f.source}
-                      {isFreeChannel(f) && (
-                        <span className="ml-1 rounded-full border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">
-                          무료
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-2 text-right tabular-nums">{fmtNum(f.leads)}</td>
-                    <td className="py-2 text-right tabular-nums">{fmtNum(f.deals)}</td>
-                    <td className="py-2 text-right font-semibold tabular-nums">{fmtPct(dealRate(f))}</td>
-                    <td className="py-2 text-right tabular-nums text-zinc-500">{fmtWon(f.spend)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="grid gap-4 lg:grid-cols-2">
+            {(["링고", "뉴로", "공통"] as const).map((product) => {
+              const rows = report.funnels.filter((f) => (f.product ?? "공통") === product);
+              if (rows.length === 0) return null;
+              return (
+                <div key={product} className={product === "공통" ? "lg:col-span-2" : ""}>
+                  <h3 className="mb-1.5 text-xs font-semibold text-zinc-500">
+                    {product === "공통" ? "공통 (링고·뉴로 공용)" : product}
+                  </h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[420px] text-sm">
+                      <thead>
+                        <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500">
+                          <th className="py-2 font-medium">채널</th>
+                          <th className="py-2 text-right font-medium">리드</th>
+                          <th className="py-2 text-right font-medium">계약</th>
+                          <th className="py-2 text-right font-medium">전환율</th>
+                          <th className="py-2 text-right font-medium">광고비</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rows.map((f) => (
+                          <tr key={f.id} className="border-b border-zinc-100 last:border-0">
+                            <td className="py-2">
+                              {f.source}
+                              {isFreeChannel(f) && (
+                                <span className="ml-1 rounded-full border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">
+                                  무료
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-2 text-right tabular-nums">{fmtNum(f.leads)}</td>
+                            <td className="py-2 text-right tabular-nums">{fmtNum(f.deals)}</td>
+                            <td className="py-2 text-right font-semibold tabular-nums">
+                              {fmtPct(dealRate(f))}
+                            </td>
+                            <td className="py-2 text-right tabular-nums text-zinc-500">
+                              {fmtWon(f.spend)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </section>
