@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { genId } from "@/lib/id";
 import { THREAD_TOPICS } from "@/lib/options";
 import { getToday } from "@/lib/today";
 import type { ThreadPost } from "@/lib/types";
@@ -23,7 +24,7 @@ const NUMBER_FIELDS: { key: keyof ThreadPost & string; label: string }[] = [
 
 function emptyPost(): ThreadPost {
   return {
-    id: crypto.randomUUID(),
+    id: genId(),
     date: getToday(),
     topic: "신문사",
     product: "링고",

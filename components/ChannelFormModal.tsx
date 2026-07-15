@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { genId } from "@/lib/id";
 import { SOURCES } from "@/lib/options";
 import type { ChannelFunnel } from "@/lib/types";
 import { Modal } from "./Modal";
@@ -23,7 +24,7 @@ const NUMBER_FIELDS: { key: keyof ChannelFunnel & string; label: string }[] = [
 
 function emptyFunnel(): ChannelFunnel {
   return {
-    id: crypto.randomUUID(),
+    id: genId(),
     period: new Date().toISOString().slice(0, 7),
     source: "커뮤니티",
     activities: 0,

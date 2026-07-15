@@ -1,7 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { GradeBadge } from "@/components/GradeBadge";
 import { KpiCard } from "@/components/KpiCard";
+import { todaysActions, type ActionType } from "@/lib/actions";
+import { pipelineBreakdown } from "@/lib/pipeline";
 import { ChannelConversionChart } from "@/components/charts/ChannelConversionChart";
 import { GradeDistributionChart } from "@/components/charts/GradeDistributionChart";
 import { cac, cpl, dealRate, isFreeChannel, safeDiv, sortByDealRateDesc } from "@/lib/channel";
@@ -73,6 +76,10 @@ export default function DashboardPage() {
     rate: conversionRate,
   };
 
+  // 오늘의 액션 + 세일즈 퍼널
+  const actions = todaysActions(data.leads, today);
+  const { funnel, off } = pipelineBreakdown(data.leads);
+
   // 차트 데이터
   const channelChartData = funnels
     .filter((f) => dealRate(f) !== null)
@@ -132,6 +139,88 @@ export default function DashboardPage() {
           </table>
         </div>
       </section>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        {/* 오늘의 액션 */}
+        <section className="rounded-xl border border-zinc-200 bg-white p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold">
+              오늘의 액션 <span className="text-zinc-400">({actions.length}건)</span>
+            </h2>
+            <Link href="/leads" className="text-xs text-zinc-500 underline-offset-2 hover:underline">
+              리드 관리로 →
+            </Link>
+          </div>
+          {actions.length === 0 ? (
+            <p className="py-6 text-center text-sm text-zinc-400">
+              오늘 처리할 액션이 없습니다 🎉
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {actions.map((a, i) => {
+                const badge: Record<ActionType, string> = {
+                  overdue: "border-rose-200 bg-rose-50 text-rose-700",
+                  winback: "border-amber-200 bg-amber-50 text-amber-700",
+                  stale: "border-zinc-200 bg-zinc-100 text-zinc-600",
+                  "no-next": "border-sky-200 bg-sky-50 text-sky-700",
+                };
+                return (
+                  <li
+                    key={`${a.lead.id}-${a.type}-${i}`}
+                    className="flex items-center gap-2 rounded-lg border border-zinc-100 px-3 py-2 text-sm"
+                  >
+                    <span
+                      className={`whitespace-nowrap rounded-full border px-2 py-0.5 text-xs font-medium ${badge[a.type]}`}
+                    >
+                      {a.reason}
+                    </span>
+                    <span className="truncate font-medium">{a.lead.name}</span>
+                    <span className="ml-auto whitespace-nowrap text-xs text-zinc-400">
+                      {a.lead.product} · {a.lead.status}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+
+        {/* 세일즈 퍼널 (단계 × 제품) */}
+        <section className="rounded-xl border border-zinc-200 bg-white p-4">
+          <h2 className="mb-3 text-sm font-semibold">세일즈 퍼널 (현재 단계별 리드)</h2>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500">
+                <th className="py-2 font-medium">단계</th>
+                <th className="py-2 text-right font-medium">링고</th>
+                <th className="py-2 text-right font-medium">뉴로</th>
+                <th className="py-2 text-right font-medium">전체</th>
+              </tr>
+            </thead>
+            <tbody>
+              {funnel.map((r, i) => (
+                <tr key={r.stage} className="border-b border-zinc-100">
+                  <td className="py-2.5 font-medium">
+                    <span className="mr-1.5 text-xs text-zinc-400">{i + 1}</span>
+                    {r.stage}
+                  </td>
+                  <td className="py-2.5 text-right tabular-nums">{r.lingo}</td>
+                  <td className="py-2.5 text-right tabular-nums">{r.neuro}</td>
+                  <td className="py-2.5 text-right font-semibold tabular-nums">{r.total}</td>
+                </tr>
+              ))}
+              {off.map((r) => (
+                <tr key={r.stage} className="border-b border-zinc-100 text-zinc-400 last:border-0">
+                  <td className="py-2.5">{r.stage} (퍼널 밖)</td>
+                  <td className="py-2.5 text-right tabular-nums">{r.lingo}</td>
+                  <td className="py-2.5 text-right tabular-nums">{r.neuro}</td>
+                  <td className="py-2.5 text-right tabular-nums">{r.total}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <KpiCard label="연락 요망" value={fmtNum(contactDue)} sub="다음 연락일이 오늘이거나 지남" />

@@ -5,8 +5,15 @@ import type { AppData } from "./types";
 // 스키마가 바뀌면 키 버전을 올려서(v1 → v2) 예전 데이터와 충돌을 피한다.
 const STORAGE_KEY = "salesops-console:v1";
 
+// structuredClone은 구형 브라우저(사내 PC·인앱 브라우저 등)에 없을 수 있어
+// JSON 방식으로 폴백한다. 데이터가 전부 직렬화 가능한 값이라 결과는 동일하다.
+function deepClone<T>(value: T): T {
+  if (typeof structuredClone === "function") return structuredClone(value);
+  return JSON.parse(JSON.stringify(value)) as T;
+}
+
 export function freshSeed(): AppData {
-  return structuredClone(seedData);
+  return deepClone(seedData);
 }
 
 export function loadAppData(): AppData {

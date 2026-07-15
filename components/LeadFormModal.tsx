@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { genId } from "@/lib/id";
 import { LEAD_STATUSES, LEAD_TYPES, LOST_REASONS, PRODUCTS, SOURCES } from "@/lib/options";
 import { calcGrade, calcScore } from "@/lib/scoring";
 import { getToday } from "@/lib/today";
@@ -27,7 +28,7 @@ const SCORE_CHECKS: {
 
 function emptyLead(): Lead {
   return {
-    id: crypto.randomUUID(),
+    id: genId(),
     name: "",
     source: "커뮤니티",
     product: "링고",
