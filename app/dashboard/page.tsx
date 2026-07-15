@@ -48,6 +48,31 @@ export default function DashboardPage() {
 
   const funnels = sortByDealRateDesc(data.funnels);
 
+  // 제품별 리드·계약 현황 (링고 / 뉴로 / 합계)
+  const productRows = (["링고", "뉴로"] as const).map((p) => {
+    const rows = data.leads.filter((l) => l.product === p);
+    const deals = rows.filter((l) => l.status === "계약");
+    return {
+      name: p as string,
+      leads: rows.length,
+      active: rows.filter((l) => {
+        const g = calcGrade(l);
+        return g === "1등급" || g === "2등급";
+      }).length,
+      deals: deals.length,
+      amount: deals.reduce((s, l) => s + l.expectedAmount, 0),
+      rate: safeDiv(deals.length, rows.length),
+    };
+  });
+  const totalRow = {
+    name: "합계",
+    leads: totalLeads,
+    active: activeTop,
+    deals: dealLeads,
+    amount: dealAmount,
+    rate: conversionRate,
+  };
+
   // 차트 데이터
   const channelChartData = funnels
     .filter((f) => dealRate(f) !== null)
@@ -65,20 +90,50 @@ export default function DashboardPage() {
         <p className="text-xs text-zinc-500">기준일 {today}</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <KpiCard label="전체 리드" value={fmtNum(totalLeads)} sub="등록된 모든 리드" />
-        <KpiCard label="계약 건수" value={`${fmtNum(dealLeads)}건`} sub="상태가 '계약'인 리드" />
-        <KpiCard
-          label="계약 금액 (예상)"
-          value={dealAmount > 0 ? fmtWon(dealAmount) : "–"}
-          sub="계약 리드의 예상 금액 합계"
-        />
-        <KpiCard
-          label="전체 계약 전환율"
-          value={fmtPct(conversionRate)}
-          sub={`계약 ${dealLeads}건 / 리드 ${totalLeads}건`}
-        />
-        <KpiCard label="1·2등급 (활성)" value={fmtNum(activeTop)} sub="지금 집중할 리드" />
+      {/* 제품별 리드·계약 현황 — 링고/뉴로 분리 + 합계 */}
+      <section className="rounded-xl border border-zinc-200 bg-white p-4">
+        <h2 className="mb-3 text-sm font-semibold">제품별 리드·계약 현황</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[560px] text-sm">
+            <thead>
+              <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500">
+                <th className="py-2 font-medium">제품</th>
+                <th className="py-2 text-right font-medium">리드</th>
+                <th className="py-2 text-right font-medium">1·2등급 (활성)</th>
+                <th className="py-2 text-right font-medium">계약</th>
+                <th className="py-2 text-right font-medium">계약 금액 (예상)</th>
+                <th className="py-2 text-right font-medium">전환율</th>
+              </tr>
+            </thead>
+            <tbody>
+              {productRows.map((r) => (
+                <tr key={r.name} className="border-b border-zinc-100">
+                  <td className="py-2.5 font-medium">{r.name}</td>
+                  <td className="py-2.5 text-right tabular-nums">{fmtNum(r.leads)}</td>
+                  <td className="py-2.5 text-right tabular-nums">{fmtNum(r.active)}</td>
+                  <td className="py-2.5 text-right tabular-nums">{fmtNum(r.deals)}건</td>
+                  <td className="py-2.5 text-right tabular-nums">
+                    {r.amount > 0 ? fmtWon(r.amount) : "–"}
+                  </td>
+                  <td className="py-2.5 text-right tabular-nums">{fmtPct(r.rate)}</td>
+                </tr>
+              ))}
+              <tr className="border-t-2 border-zinc-300 bg-zinc-50 font-semibold">
+                <td className="py-2.5">{totalRow.name}</td>
+                <td className="py-2.5 text-right tabular-nums">{fmtNum(totalRow.leads)}</td>
+                <td className="py-2.5 text-right tabular-nums">{fmtNum(totalRow.active)}</td>
+                <td className="py-2.5 text-right tabular-nums">{fmtNum(totalRow.deals)}건</td>
+                <td className="py-2.5 text-right tabular-nums">
+                  {totalRow.amount > 0 ? fmtWon(totalRow.amount) : "–"}
+                </td>
+                <td className="py-2.5 text-right tabular-nums">{fmtPct(totalRow.rate)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <KpiCard label="연락 요망" value={fmtNum(contactDue)} sub="다음 연락일이 오늘이거나 지남" />
         <KpiCard
           label="최고 무료 채널"
