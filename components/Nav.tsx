@@ -8,6 +8,8 @@ const LINKS = [
   { href: "/dashboard", label: "대시보드" },
   { href: "/leads", label: "리드" },
   { href: "/channels", label: "채널" },
+  { href: "/report", label: "월간 보고" },
+  { href: "/threads", label: "스레드" },
 ];
 
 export function Nav() {
@@ -41,12 +43,6 @@ export function Nav() {
               </Link>
             );
           })}
-          <span className="cursor-default rounded-md px-3 py-1.5 text-zinc-300" title="2차 개발 예정">
-            월간 보고
-          </span>
-          <span className="cursor-default rounded-md px-3 py-1.5 text-zinc-300" title="3차 개발 예정">
-            스레드
-          </span>
         </nav>
         <button
           onClick={handleReset}
