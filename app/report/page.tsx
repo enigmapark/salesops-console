@@ -44,6 +44,13 @@ export default function ReportPage() {
     return <p className="py-16 text-center text-sm text-zinc-400">불러오는 중…</p>;
   }
 
+  // 이 달(첫 문의 기준)에 들어와 계약된 리드 — 건수·예상 금액
+  const monthDealLeads = data.leads.filter(
+    (l) => l.firstInquiry.startsWith(month) && l.status === "계약",
+  );
+  const monthDealCount = monthDealLeads.length;
+  const monthDealAmount = monthDealLeads.reduce((sum, l) => sum + l.expectedAmount, 0);
+
   const setField = (key: keyof ReportComment, value: string) =>
     setDraft((d) => ({ ...d, [key]: value }));
 
@@ -115,9 +122,9 @@ export default function ReportPage() {
           sub={`계약 ${report.channelTotals.deals}건 · 전환율 ${fmtPct(report.channelConversion)} · 광고비 ${fmtWon(report.channelTotals.spend)}`}
         />
         <KpiCard
-          label="스레드"
-          value={`${report.threads.postCount} 게시`}
-          sub={`노출 ${fmtNum(report.threads.totalImpressions)} · 반응률 ${fmtPct(report.threads.avgEngagementRate)} · 유입 ${report.threads.totalLeads}건`}
+          label="계약 건수"
+          value={`${fmtNum(monthDealCount)}건`}
+          sub={`링고 ${report.lingo.deals}건 · 뉴로 ${report.neuro.deals}건${monthDealAmount > 0 ? ` · 예상 ${fmtWon(monthDealAmount)}` : ""}`}
         />
       </div>
 
