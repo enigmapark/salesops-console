@@ -1,5 +1,5 @@
 import { seedData } from "../data/seed";
-import type { AppData, LeadStatus } from "./types";
+import type { AppData, ChannelFunnel, LeadStatus, ProductScope } from "./types";
 
 // localStorage repository — 컴포넌트는 이 모듈을 통해서만 저장소에 접근한다.
 // 스키마가 바뀌면 키 버전을 올려서(v1 → v2) 예전 데이터와 충돌을 피한다.
@@ -16,10 +16,26 @@ export function migrateLeadStatus(status: string): LeadStatus {
   return LEGACY_STATUS_MAP[status] ?? (status as LeadStatus);
 }
 
+// 제품 필드가 없던 시절의 seed 채널 행 → 제품 복원 (그 외 알 수 없는 행만 "공통")
+const LEGACY_FUNNEL_PRODUCT: Record<string, ProductScope> = {
+  "funnel-meta": "링고",
+  "funnel-naver": "링고",
+  "funnel-coldmail": "링고",
+  "funnel-community": "링고",
+  "funnel-kakao": "링고",
+  "funnel-gov": "링고",
+  "funnel-referral": "뉴로",
+  "funnel-threads": "공통",
+};
+
+export function inferFunnelProduct(f: Pick<ChannelFunnel, "id"> & { product?: ProductScope }): ProductScope {
+  return f.product ?? LEGACY_FUNNEL_PRODUCT[f.id] ?? "공통";
+}
+
 function migrateV1(parsed: Partial<AppData>): AppData {
   return {
     leads: (parsed.leads ?? []).map((l) => ({ ...l, status: migrateLeadStatus(l.status) })),
-    funnels: (parsed.funnels ?? []).map((f) => ({ ...f, product: f.product ?? "공통" })),
+    funnels: (parsed.funnels ?? []).map((f) => ({ ...f, product: inferFunnelProduct(f) })),
     threadPosts: parsed.threadPosts ?? [],
     reportComments: parsed.reportComments ?? [],
   };
@@ -42,13 +58,16 @@ export function loadAppData(): AppData {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<AppData>;
-      return {
+      const needFix = (parsed.funnels ?? []).some((f) => !f.product);
+      const result: AppData = {
         leads: parsed.leads ?? [],
-        // 제품 필드가 없던 시절 데이터는 "공통"으로 보정
-        funnels: (parsed.funnels ?? []).map((f) => ({ ...f, product: f.product ?? "공통" })),
+        // 제품 필드가 없던 시절 데이터는 원래 제품으로 복원
+        funnels: (parsed.funnels ?? []).map((f) => ({ ...f, product: inferFunnelProduct(f) })),
         threadPosts: parsed.threadPosts ?? [],
         reportComments: parsed.reportComments ?? [],
       };
+      if (needFix) saveAppData(result);
+      return result;
     }
     // v1 데이터가 있으면 단계 이름을 변환해서 이어받는다 (사용자 입력 유실 방지)
     const legacy = window.localStorage.getItem(LEGACY_KEY_V1);
