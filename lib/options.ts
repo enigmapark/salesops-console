@@ -1,5 +1,6 @@
 import type {
   AcquisitionSource,
+  DealProbability,
   Grade,
   LeadStatus,
   LeadType,
@@ -50,4 +51,5 @@ export const LEAD_STATUSES: LeadStatus[] = [
   "이탈",
 ];
 export const GRADES: Grade[] = ["1등급", "2등급", "3등급", "후순위", "계약완료"];
+export const DEAL_PROBABILITIES: DealProbability[] = ["높음", "보통", "낮음"];
 export const THREAD_TOPICS: ThreadTopic[] = ["신문사", "SEO", "AI", "마케팅", "기타"];

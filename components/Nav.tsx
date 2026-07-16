@@ -9,7 +9,7 @@ const LINKS = [
   { href: "/leads", label: "리드" },
   { href: "/channels", label: "채널" },
   { href: "/report", label: "월간 보고" },
-  { href: "/threads", label: "스레드" },
+  { href: "/threads", label: "스레드(SNS)" },
 ];
 
 export function Nav() {

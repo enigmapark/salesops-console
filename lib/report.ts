@@ -101,9 +101,10 @@ export function deltaCountLabel(cur: number, prev: number): string {
   return diff > 0 ? `전월 대비 +${diff}건` : `전월 대비 ${diff}건`;
 }
 
-// 자동 요약 + 다음 달 권장 액션 (규칙 기반)
+// 자동 요약 + 위험요인 + 다음 달 권장 액션 (규칙 기반)
 export interface MonthlyInsights {
   summary: string[];
+  risks: string[];
   recommendations: string[];
 }
 
@@ -112,6 +113,7 @@ export function buildInsights(data: AppData, month: string, today: string): Mont
   const prev = buildMonthlyReport(data, prevMonthOf(month));
 
   const summary: string[] = [];
+  const risks: string[] = [];
   const recommendations: string[] = [];
 
   // 1) 신규 리드 증감
@@ -171,10 +173,26 @@ export function buildInsights(data: AppData, month: string, today: string): Mont
     recommendations.push(`다음 연락일이 비어 있는 활성 리드 ${noNextActive.length}건 입력`);
   }
 
+  // 위험요인 — 경영진이 바로 물어볼 항목
+  const activeLeads = data.leads.filter((l) => l.status !== "계약" && l.status !== "이탈");
+  const overdueAll = activeLeads.filter((l) => l.nextContact && l.nextContact <= today);
+  const staleAll = activeLeads.filter((l) => l.stale3m);
+  const winbackDue = data.leads.filter(
+    (l) => l.status === "이탈" && l.winbackDate && l.winbackDate <= today,
+  );
+  if (overdueAll.length > 0) risks.push(`다음 액션 예정일이 지난 리드 ${overdueAll.length}건`);
+  if (stuck.length > 0)
+    risks.push(`제안·견적/계약 검토 단계 정체 ${stuck.length}건 — 여기서 매출이 막혀 있음`);
+  if (staleAll.length > 0) risks.push(`3개월 이상 미응답 리드 ${staleAll.length}건`);
+  if (noNextActive.length > 0)
+    risks.push(`다음 액션이 입력되지 않은 활성 리드 ${noNextActive.length}건 — 관리 누락 위험`);
+  if (winbackDue.length > 0) risks.push(`윈백 예정일이 지난 이탈 고객 ${winbackDue.length}건`);
+  if (risks.length === 0) risks.push("특이 위험요인 없음");
+
   if (recommendations.length === 0) {
     recommendations.push("특이 리스크 없음 — 현재 퍼널 유지");
   }
-  return { summary, recommendations };
+  return { summary, risks, recommendations };
 }
 
 // 월 선택 드롭다운용 — 데이터가 존재하는 모든 월 (최신 먼저)
@@ -222,6 +240,8 @@ export function buildCopyText(
     lines.push("");
     lines.push("■ 핵심 요약");
     for (const s of insights.summary) lines.push(`- ${s}`);
+    lines.push("■ 위험요인");
+    for (const r of insights.risks) lines.push(`- ${r}`);
     lines.push("■ 다음 달 권장 액션");
     for (const rec of insights.recommendations) lines.push(`- ${rec}`);
   }

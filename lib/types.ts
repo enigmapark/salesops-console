@@ -40,6 +40,7 @@ export type LeadStatus =
   | "보류"
   | "이탈";
 export type Grade = "1등급" | "2등급" | "3등급" | "후순위" | "계약완료";
+export type DealProbability = "높음" | "보통" | "낮음";
 
 export interface Lead {
   id: string;
@@ -57,9 +58,15 @@ export interface Lead {
   businessStopped: boolean; // 사업 중단 -3
   // 관리 필드
   competitor?: string;
-  expectedAmount: number; // 원
-  firstInquiry: string; // YYYY-MM-DD
-  nextContact?: string;
+  // 매출 3분리: 월 이용료(MRR) × 12 + 초기 세팅비 = 총 계약가치(expectedAmount)
+  expectedAmount: number; // 원 — 총 계약가치
+  monthlyFee?: number; // 월 이용료 (반복 매출, MRR)
+  setupFee?: number; // 초기 세팅비 등 일회성 매출
+  firstInquiry: string; // YYYY-MM-DD (유입일 — 코호트 기준)
+  contractDate?: string; // 계약일 (당월 계약 집계 기준)
+  nextContact?: string; // 다음 액션 예정일
+  nextAction?: string; // 다음 액션 내용 (예: 견적 리마인드 전화)
+  dealProbability?: DealProbability; // 계약 가능성
   lastContactDate?: string;
   contactAttempts: number;
   // 이탈/윈백

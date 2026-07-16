@@ -2,10 +2,17 @@
 
 import { useState } from "react";
 import { genId } from "@/lib/id";
-import { LEAD_STATUSES, LEAD_TYPES, LOST_REASONS, PRODUCTS, SOURCES } from "@/lib/options";
+import {
+  DEAL_PROBABILITIES,
+  LEAD_STATUSES,
+  LEAD_TYPES,
+  LOST_REASONS,
+  PRODUCTS,
+  SOURCES,
+} from "@/lib/options";
 import { calcGrade, calcScore } from "@/lib/scoring";
 import { getToday } from "@/lib/today";
-import type { Lead, LostReason } from "@/lib/types";
+import type { DealProbability, Lead, LostReason } from "@/lib/types";
 import { GradeBadge } from "./GradeBadge";
 import { Modal } from "./Modal";
 
@@ -60,6 +67,17 @@ export function LeadFormModal({
 
   const set = <K extends keyof Lead>(key: K, value: Lead[K]) =>
     setDraft((d) => ({ ...d, [key]: value }));
+
+  // 월 이용료·세팅비 입력 시 총 계약가치 자동 계산
+  const setMoney = (key: "monthlyFee" | "setupFee", value: string) =>
+    setDraft((d) => {
+      const v = value === "" ? undefined : Math.max(0, Number(value) || 0);
+      const next = { ...d, [key]: v };
+      const m = next.monthlyFee ?? 0;
+      const s = next.setupFee ?? 0;
+      if (m > 0 || s > 0) next.expectedAmount = m * 12 + s;
+      return next;
+    });
 
   const handleSave = () => {
     if (!draft.name.trim()) {
@@ -136,14 +154,61 @@ export function LeadFormModal({
             </select>
           </div>
           <div>
-            <label className={labelCls}>예상 금액 (원)</label>
-            <input
-              type="number"
-              min={0}
+            <label className={labelCls}>계약 가능성</label>
+            <select
               className={inputCls}
-              value={draft.expectedAmount}
-              onChange={(e) => set("expectedAmount", Math.max(0, Number(e.target.value) || 0))}
-            />
+              value={draft.dealProbability ?? ""}
+              onChange={(e) =>
+                set(
+                  "dealProbability",
+                  e.target.value === "" ? undefined : (e.target.value as DealProbability),
+                )
+              }
+            >
+              <option value="">선택 안 함</option>
+              {DEAL_PROBABILITIES.map((p) => (
+                <option key={p}>{p}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* 매출 3분리 — 월 이용료 입력 시 총 계약가치 자동 계산 (월×12 + 세팅비) */}
+        <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+          <p className="mb-2 text-xs font-semibold text-zinc-600">
+            계약 금액 (월 이용료를 넣으면 총 계약가치 = 월×12 + 세팅비로 자동 계산)
+          </p>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className={labelCls}>월 이용료 (MRR)</label>
+              <input
+                type="number"
+                min={0}
+                className={inputCls}
+                value={draft.monthlyFee ?? ""}
+                onChange={(e) => setMoney("monthlyFee", e.target.value)}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>초기 세팅비 (일회성)</label>
+              <input
+                type="number"
+                min={0}
+                className={inputCls}
+                value={draft.setupFee ?? ""}
+                onChange={(e) => setMoney("setupFee", e.target.value)}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>총 계약가치 (원)</label>
+              <input
+                type="number"
+                min={0}
+                className={inputCls}
+                value={draft.expectedAmount}
+                onChange={(e) => set("expectedAmount", Math.max(0, Number(e.target.value) || 0))}
+              />
+            </div>
           </div>
         </div>
 
@@ -183,7 +248,7 @@ export function LeadFormModal({
             />
           </div>
           <div>
-            <label className={labelCls}>다음 연락일</label>
+            <label className={labelCls}>다음 액션 예정일</label>
             <input
               type="date"
               className={inputCls}
@@ -211,6 +276,14 @@ export function LeadFormModal({
             />
           </div>
           <div className="col-span-2">
+            <label className={labelCls}>다음 액션 (무엇을 할지 — 예: 견적 리마인드 전화)</label>
+            <input
+              className={inputCls}
+              value={draft.nextAction ?? ""}
+              onChange={(e) => set("nextAction", e.target.value || undefined)}
+            />
+          </div>
+          <div className="col-span-2">
             <label className={labelCls}>경쟁사</label>
             <input
               className={inputCls}
@@ -228,6 +301,22 @@ export function LeadFormModal({
             />
           </div>
         </div>
+
+        {/* 계약 정보 — 상태가 계약이면 표시 (당월 계약 집계의 기준) */}
+        {draft.status === "계약" && (
+          <div className="rounded-lg border border-emerald-100 bg-emerald-50/50 p-3">
+            <p className="mb-2 text-xs font-semibold text-emerald-700">계약 정보</p>
+            <div>
+              <label className={labelCls}>계약일 (당월 계약 집계 기준 — 꼭 입력)</label>
+              <input
+                type="date"
+                className={inputCls}
+                value={draft.contractDate ?? ""}
+                onChange={(e) => set("contractDate", e.target.value || undefined)}
+              />
+            </div>
+          </div>
+        )}
 
         {/* 이탈/윈백 — 상태가 이탈이거나 사유가 이미 있으면 표시 */}
         {(draft.status === "이탈" || draft.lostReason) && (

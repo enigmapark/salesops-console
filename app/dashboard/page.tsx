@@ -4,7 +4,17 @@ import Link from "next/link";
 import { GradeBadge } from "@/components/GradeBadge";
 import { KpiCard } from "@/components/KpiCard";
 import { todaysActions, type ActionType } from "@/lib/actions";
+import {
+  avgDaysToClose,
+  cohortConversion,
+  contractsInMonth,
+  inflowInMonth,
+  newMrrInMonth,
+  oneOffInMonth,
+  pipelineValue,
+} from "@/lib/exec";
 import { pipelineBreakdown } from "@/lib/pipeline";
+import { buildInsights, deltaCountLabel, deltaLabel, prevMonthOf } from "@/lib/report";
 import { ChannelConversionChart } from "@/components/charts/ChannelConversionChart";
 import { GradeDistributionChart } from "@/components/charts/GradeDistributionChart";
 import { cac, cpl, dealRate, isFreeChannel, safeDiv, sortByDealRateDesc } from "@/lib/channel";
@@ -75,6 +85,19 @@ export default function DashboardPage() {
   const actions = todaysActions(data.leads, today);
   const { funnel, off } = pipelineBreakdown(data.leads);
 
+  // 경영진 KPI — 유입(코호트)과 계약(당월)을 구분해서 집계
+  const prevM = prevMonthOf(thisMonth);
+  const inflowNow = inflowInMonth(data.leads, thisMonth).length;
+  const inflowPrev = inflowInMonth(data.leads, prevM).length;
+  const dealsNow = contractsInMonth(data.leads, thisMonth).length;
+  const dealsPrev = contractsInMonth(data.leads, prevM).length;
+  const mrrNow = newMrrInMonth(data.leads, thisMonth);
+  const oneOffNow = oneOffInMonth(data.leads, thisMonth);
+  const pipeline = pipelineValue(data.leads);
+  const cohortConv = cohortConversion(data.leads, thisMonth);
+  const avgClose = avgDaysToClose(data.leads);
+  const insights = buildInsights(data, thisMonth, today);
+
   // 제품별 채널 데이터 (링고/뉴로 구분, 공통은 별도)
   const funnelsBy = (p: "링고" | "뉴로") => funnels.filter((f) => f.product === p);
   const commonFunnels = funnels.filter((f) => f.product === "공통");
@@ -102,6 +125,82 @@ export default function DashboardPage() {
         <h1 className="text-xl font-bold">대시보드</h1>
         <p className="text-xs text-zinc-500">기준일 {today}</p>
       </div>
+
+      {/* 경영진 KPI — 30초 안에 이번 달 상황 파악 */}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+        <KpiCard
+          label="이번 달 신규 리드"
+          value={`${fmtNum(inflowNow)}건`}
+          sub={deltaLabel(inflowNow, inflowPrev)}
+        />
+        <KpiCard
+          label="이번 달 계약"
+          value={`${fmtNum(dealsNow)}건`}
+          sub={`${deltaCountLabel(dealsNow, dealsPrev)} · 계약일 기준`}
+        />
+        <KpiCard
+          label="신규 MRR"
+          value={mrrNow > 0 ? fmtWon(mrrNow) : "0원"}
+          sub={oneOffNow > 0 ? `일회성 ${fmtWon(oneOffNow)} 별도` : "이번 달 계약 고객의 월 이용료"}
+        />
+        <KpiCard
+          label="진행 파이프라인"
+          value={pipeline.amount > 0 ? fmtWon(pipeline.amount) : "–"}
+          sub={`활성 리드 ${pipeline.count}건의 총 계약가치`}
+        />
+        <KpiCard
+          label="코호트 전환율"
+          value={fmtPct(cohortConv)}
+          sub="이번 달 유입 리드 중 계약 비율"
+        />
+        <KpiCard
+          label="평균 계약 소요일"
+          value={avgClose === null ? "–" : `${avgClose}일`}
+          sub="유입일 → 계약일"
+        />
+      </div>
+
+      {/* 경영진 인사이트 — 요약·위험요인·다음 액션 */}
+      <section className="rounded-xl border border-zinc-200 bg-white p-4">
+        <h2 className="mb-3 text-sm font-semibold">
+          경영진 인사이트 <span className="font-normal text-zinc-400">({thisMonth} 자동 생성)</span>
+        </h2>
+        <div className="grid gap-5 lg:grid-cols-3">
+          <div>
+            <p className="mb-2 text-xs font-semibold text-zinc-500">핵심 요약</p>
+            <ul className="space-y-1.5 text-sm text-zinc-700">
+              {insights.summary.map((s, i) => (
+                <li key={i} className="flex gap-2">
+                  <span className="text-zinc-300">•</span>
+                  <span>{s}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="mb-2 text-xs font-semibold text-rose-600">위험요인</p>
+            <ul className="space-y-1.5 text-sm text-zinc-700">
+              {insights.risks.map((r, i) => (
+                <li key={i} className="flex gap-2">
+                  <span className="text-rose-300">•</span>
+                  <span>{r}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="mb-2 text-xs font-semibold text-emerald-700">다음 액션</p>
+            <ul className="space-y-1.5 text-sm text-zinc-700">
+              {insights.recommendations.map((r, i) => (
+                <li key={i} className="flex gap-2">
+                  <span className="font-semibold text-emerald-500">{i + 1}.</span>
+                  <span>{r}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
 
       {/* 제품별 리드·계약 현황 — 링고/뉴로 분리 + 합계 */}
       <section className="rounded-xl border border-zinc-200 bg-white p-4">
@@ -237,6 +336,11 @@ export default function DashboardPage() {
                       {a.reason}
                     </span>
                     <span className="truncate font-medium">{a.lead.name}</span>
+                    {a.lead.nextAction && (
+                      <span className="hidden truncate text-xs text-zinc-400 sm:inline">
+                        — {a.lead.nextAction}
+                      </span>
+                    )}
                     <span className="ml-auto whitespace-nowrap text-xs text-zinc-400">
                       {a.lead.product} · {a.lead.status}
                     </span>

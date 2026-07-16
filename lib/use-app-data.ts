@@ -1,13 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { loadAppData, resetAppData, saveAppData } from "./storage";
+import { freshSeed, loadAppData, resetAppData, saveAppData } from "./storage";
 import type { AppData } from "./types";
 
-// localStorage는 브라우저에만 있으므로 마운트 후에 읽는다.
-// data가 null인 동안은 화면에서 "불러오는 중"을 보여준다 (hydration 불일치 방지).
+// 처음에는 seed로 즉시 렌더링하고(정적 HTML에도 데이터가 박힘 — 구형 브라우저에서
+// 스크립트가 실패해도 내용이 보인다), 마운트 후 localStorage 데이터로 교체한다.
 export function useAppData() {
-  const [data, setData] = useState<AppData | null>(null);
+  const [data, setData] = useState<AppData | null>(() => freshSeed());
 
   useEffect(() => {
     setData(loadAppData());

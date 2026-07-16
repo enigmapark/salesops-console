@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { KpiCard } from "@/components/KpiCard";
 import { dealRate, isFreeChannel, safeDiv } from "@/lib/channel";
+import { contractsInMonth, newMrrInMonth } from "@/lib/exec";
 import { fmtNum, fmtPct, fmtWon } from "@/lib/format";
 import {
   availableMonths,
@@ -73,6 +74,12 @@ export default function ReportPage() {
   const spendBy = (p: Product) =>
     report.funnels.filter((f) => f.product === p).reduce((s, f) => s + f.spend, 0);
   const totalNewLeads = report.lingo.newLeads + report.neuro.newLeads;
+
+  // 당월 계약(계약일 기준) — 유입 월과 무관하게 이 달에 계약된 고객
+  const closedThisMonth = contractsInMonth(data.leads, month);
+  const closedBy = (p: Product) => closedThisMonth.filter((l) => l.product === p);
+  const mrrBy = (p: Product) => closedBy(p).reduce((s, l) => s + (l.monthlyFee ?? 0), 0);
+  const totalNewMrr = newMrrInMonth(data.leads, month);
 
   const setField = (key: keyof ReportComment, value: string) =>
     setDraft((d) => ({ ...d, [key]: value }));
@@ -158,15 +165,21 @@ export default function ReportPage() {
                 </td>
               </tr>
               <tr className="border-b border-zinc-100">
-                <td className="py-2.5 font-medium">계약 건수</td>
-                <td className="py-2.5 text-right tabular-nums">{fmtNum(report.lingo.deals)}건</td>
-                <td className="py-2.5 text-right tabular-nums">{fmtNum(report.neuro.deals)}건</td>
+                <td className="py-2.5 font-medium">당월 계약 (계약일 기준)</td>
+                <td className="py-2.5 text-right tabular-nums">{fmtNum(closedBy("링고").length)}건</td>
+                <td className="py-2.5 text-right tabular-nums">{fmtNum(closedBy("뉴로").length)}건</td>
                 <td className="py-2.5 text-right font-semibold tabular-nums">
-                  {fmtNum(monthDealCount)}건
+                  {fmtNum(closedThisMonth.length)}건
                 </td>
               </tr>
+              <tr className="border-b border-zinc-100">
+                <td className="py-2.5 font-medium">신규 MRR (월 반복매출)</td>
+                <td className="py-2.5 text-right tabular-nums">{fmtWon(mrrBy("링고"))}</td>
+                <td className="py-2.5 text-right tabular-nums">{fmtWon(mrrBy("뉴로"))}</td>
+                <td className="py-2.5 text-right font-semibold tabular-nums">{fmtWon(totalNewMrr)}</td>
+              </tr>
               <tr>
-                <td className="py-2.5 font-medium">전환율 (계약÷리드)</td>
+                <td className="py-2.5 font-medium">코호트 전환율 (유입월 기준)</td>
                 <td className="py-2.5 text-right tabular-nums">{fmtPct(report.lingo.conversionRate)}</td>
                 <td className="py-2.5 text-right tabular-nums">{fmtPct(report.neuro.conversionRate)}</td>
                 <td className="py-2.5 text-right font-semibold tabular-nums">
@@ -177,7 +190,8 @@ export default function ReportPage() {
           </table>
         </div>
         <p className="mt-2 text-[11px] text-zinc-400">
-          광고비는 해당 월 채널 퍼널의 소진 금액 합계 (공통 채널 광고비는 전체에만 포함)
+          당월 계약 = 이 달에 계약된 고객(이전 달 유입 포함) · 코호트 전환율 = 이 달 유입 리드 중
+          최종 계약 비율 · 광고비의 공통 채널분은 전체에만 포함
         </p>
       </section>
 
@@ -263,9 +277,9 @@ export default function ReportPage() {
         />
       </div>
 
-      {/* 자동 요약 + 권장 액션 */}
+      {/* 자동 요약 + 위험요인 + 권장 액션 */}
       {insights && (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-3">
           <section className="rounded-xl border border-zinc-200 bg-white p-4">
             <h2 className="mb-3 text-sm font-semibold">{month} 핵심 요약 (자동)</h2>
             <ul className="space-y-1.5 text-sm text-zinc-700">
@@ -278,11 +292,22 @@ export default function ReportPage() {
             </ul>
           </section>
           <section className="rounded-xl border border-zinc-200 bg-white p-4">
-            <h2 className="mb-3 text-sm font-semibold">다음 달 권장 액션 (자동)</h2>
+            <h2 className="mb-3 text-sm font-semibold text-rose-600">위험요인 (자동)</h2>
+            <ul className="space-y-1.5 text-sm text-zinc-700">
+              {insights.risks.map((r, i) => (
+                <li key={i} className="flex gap-2">
+                  <span className="text-rose-300">•</span>
+                  <span>{r}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+          <section className="rounded-xl border border-zinc-200 bg-white p-4">
+            <h2 className="mb-3 text-sm font-semibold text-emerald-700">다음 달 권장 액션 (자동)</h2>
             <ul className="space-y-1.5 text-sm text-zinc-700">
               {insights.recommendations.map((r, i) => (
                 <li key={i} className="flex gap-2">
-                  <span className="font-semibold text-zinc-400">{i + 1}.</span>
+                  <span className="font-semibold text-emerald-500">{i + 1}.</span>
                   <span>{r}</span>
                 </li>
               ))}
