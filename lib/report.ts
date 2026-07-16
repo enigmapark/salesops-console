@@ -116,10 +116,16 @@ export function buildInsights(data: AppData, month: string, today: string): Mont
   const risks: string[] = [];
   const recommendations: string[] = [];
 
+  // 제품별 건수 병기 헬퍼 — 링고·뉴로는 다른 상품이므로 합계만 쓰지 않는다
+  const byProd = (arr: Lead[]) =>
+    `링고 ${arr.filter((l) => l.product === "링고").length}건 · 뉴로 ${arr.filter((l) => l.product === "뉴로").length}건`;
+
   // 1) 신규 리드 증감
   const totalNew = cur.lingo.newLeads + cur.neuro.newLeads;
   const prevNew = prev.lingo.newLeads + prev.neuro.newLeads;
-  summary.push(`전체 신규 리드 ${totalNew}건 — ${deltaLabel(totalNew, prevNew)}`);
+  summary.push(
+    `전체 신규 리드 ${totalNew}건 (링고 ${cur.lingo.newLeads} · 뉴로 ${cur.neuro.newLeads}) — ${deltaLabel(totalNew, prevNew)}`,
+  );
 
   // 2) 제품별 계약 증감
   summary.push(
@@ -180,13 +186,20 @@ export function buildInsights(data: AppData, month: string, today: string): Mont
   const winbackDue = data.leads.filter(
     (l) => l.status === "이탈" && l.winbackDate && l.winbackDate <= today,
   );
-  if (overdueAll.length > 0) risks.push(`다음 액션 예정일이 지난 리드 ${overdueAll.length}건`);
+  if (overdueAll.length > 0)
+    risks.push(`다음 액션 예정일이 지난 리드 ${overdueAll.length}건 (${byProd(overdueAll)})`);
   if (stuck.length > 0)
-    risks.push(`제안·견적/계약 검토 단계 정체 ${stuck.length}건 — 여기서 매출이 막혀 있음`);
-  if (staleAll.length > 0) risks.push(`3개월 이상 미응답 리드 ${staleAll.length}건`);
+    risks.push(
+      `제안·견적/계약 검토 단계 정체 ${stuck.length}건 (${byProd(stuck)}) — 여기서 매출이 막혀 있음`,
+    );
+  if (staleAll.length > 0)
+    risks.push(`3개월 이상 미응답 리드 ${staleAll.length}건 (${byProd(staleAll)})`);
   if (noNextActive.length > 0)
-    risks.push(`다음 액션이 입력되지 않은 활성 리드 ${noNextActive.length}건 — 관리 누락 위험`);
-  if (winbackDue.length > 0) risks.push(`윈백 예정일이 지난 이탈 고객 ${winbackDue.length}건`);
+    risks.push(
+      `다음 액션이 입력되지 않은 활성 리드 ${noNextActive.length}건 (${byProd(noNextActive)})`,
+    );
+  if (winbackDue.length > 0)
+    risks.push(`윈백 예정일이 지난 이탈 고객 ${winbackDue.length}건 (${byProd(winbackDue)})`);
   if (risks.length === 0) risks.push("특이 위험요인 없음");
 
   if (recommendations.length === 0) {

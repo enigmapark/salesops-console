@@ -85,17 +85,22 @@ export default function DashboardPage() {
   const actions = todaysActions(data.leads, today);
   const { funnel, off } = pipelineBreakdown(data.leads);
 
-  // 경영진 KPI — 유입(코호트)과 계약(당월)을 구분해서 집계
+  // 경영진 KPI — 링고/뉴로 각각 계산 (유입 코호트와 당월 계약을 구분)
   const prevM = prevMonthOf(thisMonth);
-  const inflowNow = inflowInMonth(data.leads, thisMonth).length;
-  const inflowPrev = inflowInMonth(data.leads, prevM).length;
-  const dealsNow = contractsInMonth(data.leads, thisMonth).length;
-  const dealsPrev = contractsInMonth(data.leads, prevM).length;
-  const mrrNow = newMrrInMonth(data.leads, thisMonth);
-  const oneOffNow = oneOffInMonth(data.leads, thisMonth);
-  const pipeline = pipelineValue(data.leads);
-  const cohortConv = cohortConversion(data.leads, thisMonth);
-  const avgClose = avgDaysToClose(data.leads);
+  const execOf = (p: "링고" | "뉴로") => {
+    const L = data.leads.filter((l) => l.product === p);
+    return {
+      inflowNow: inflowInMonth(L, thisMonth).length,
+      inflowPrev: inflowInMonth(L, prevM).length,
+      dealsNow: contractsInMonth(L, thisMonth).length,
+      dealsPrev: contractsInMonth(L, prevM).length,
+      mrr: newMrrInMonth(L, thisMonth),
+      oneOff: oneOffInMonth(L, thisMonth),
+      pipeline: pipelineValue(L),
+      cohort: cohortConversion(L, thisMonth),
+      avgClose: avgDaysToClose(L),
+    };
+  };
   const insights = buildInsights(data, thisMonth, today);
 
   // 제품별 채널 데이터 (링고/뉴로 구분, 공통은 별도)
@@ -126,38 +131,51 @@ export default function DashboardPage() {
         <p className="text-xs text-zinc-500">기준일 {today}</p>
       </div>
 
-      {/* 경영진 KPI — 30초 안에 이번 달 상황 파악 */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-        <KpiCard
-          label="이번 달 신규 리드"
-          value={`${fmtNum(inflowNow)}건`}
-          sub={deltaLabel(inflowNow, inflowPrev)}
-        />
-        <KpiCard
-          label="이번 달 계약"
-          value={`${fmtNum(dealsNow)}건`}
-          sub={`${deltaCountLabel(dealsNow, dealsPrev)} · 계약일 기준`}
-        />
-        <KpiCard
-          label="신규 MRR"
-          value={mrrNow > 0 ? fmtWon(mrrNow) : "0원"}
-          sub={oneOffNow > 0 ? `일회성 ${fmtWon(oneOffNow)} 별도` : "이번 달 계약 고객의 월 이용료"}
-        />
-        <KpiCard
-          label="진행 파이프라인"
-          value={pipeline.amount > 0 ? fmtWon(pipeline.amount) : "–"}
-          sub={`활성 리드 ${pipeline.count}건의 총 계약가치`}
-        />
-        <KpiCard
-          label="코호트 전환율"
-          value={fmtPct(cohortConv)}
-          sub="이번 달 유입 리드 중 계약 비율"
-        />
-        <KpiCard
-          label="평균 계약 소요일"
-          value={avgClose === null ? "–" : `${avgClose}일`}
-          sub="유입일 → 계약일"
-        />
+      {/* 경영진 KPI — 링고 / 뉴로 각각 (다른 서비스이므로 절대 합산하지 않음) */}
+      <div className="grid gap-4 xl:grid-cols-2">
+        {(["링고", "뉴로"] as const).map((p) => {
+          const e = execOf(p);
+          return (
+            <section key={p} className="rounded-xl border border-zinc-200 bg-white p-4">
+              <h2 className="mb-3 text-sm font-semibold">
+                {p} · 이번 달{" "}
+                <span className="text-xs font-normal text-zinc-400">{thisMonth}</span>
+              </h2>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <KpiCard
+                  label="신규 리드"
+                  value={`${fmtNum(e.inflowNow)}건`}
+                  sub={deltaLabel(e.inflowNow, e.inflowPrev)}
+                />
+                <KpiCard
+                  label="계약 (계약일 기준)"
+                  value={`${fmtNum(e.dealsNow)}건`}
+                  sub={deltaCountLabel(e.dealsNow, e.dealsPrev)}
+                />
+                <KpiCard
+                  label="신규 MRR"
+                  value={e.mrr > 0 ? fmtWon(e.mrr) : "0원"}
+                  sub={e.oneOff > 0 ? `일회성 ${fmtWon(e.oneOff)} 별도` : "계약 고객 월 이용료"}
+                />
+                <KpiCard
+                  label="진행 파이프라인"
+                  value={e.pipeline.amount > 0 ? fmtWon(e.pipeline.amount) : "–"}
+                  sub={`활성 ${e.pipeline.count}건의 계약가치`}
+                />
+                <KpiCard
+                  label="코호트 전환율"
+                  value={fmtPct(e.cohort)}
+                  sub="이번 달 유입 중 계약"
+                />
+                <KpiCard
+                  label="평균 계약 소요일"
+                  value={e.avgClose === null ? "–" : `${e.avgClose}일`}
+                  sub="유입일 → 계약일"
+                />
+              </div>
+            </section>
+          );
+        })}
       </div>
 
       {/* 경영진 인사이트 — 요약·위험요인·다음 액션 */}
