@@ -121,10 +121,22 @@ export interface ReportComment {
   threadNote?: string;
 }
 
+// 주간 세일즈 활동 (콜드메일 발송·통화·미팅 등 — 주간 현황에서 직접 입력)
+export interface WeeklyActivity {
+  id: string; // `${weekStart}:${product}`
+  weekStart: string; // 해당 주 월요일 (YYYY-MM-DD)
+  product: Product;
+  coldEmails: number; // 콜드메일 발송 수
+  calls: number; // 통화 수
+  meetings: number; // 미팅 수
+  note?: string;
+}
+
 // localStorage에 통째로 저장하는 앱 데이터 묶음
 export interface AppData {
   leads: Lead[];
   funnels: ChannelFunnel[];
   threadPosts: ThreadPost[];
   reportComments: ReportComment[];
+  weeklyActivities: WeeklyActivity[];
 }

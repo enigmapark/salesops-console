@@ -88,6 +88,11 @@ describe("CPL·CAC", () => {
     expect(isFreeChannel(makeFunnel({ spend: 0 }))).toBe(true);
     expect(isFreeChannel(makeFunnel({ spend: 1 }))).toBe(false);
   });
+
+  it("메타·네이버는 광고비가 아직 0이어도 무료 채널이 아니다", () => {
+    expect(isFreeChannel(makeFunnel({ source: "메타광고", spend: 0 }))).toBe(false);
+    expect(isFreeChannel(makeFunnel({ source: "네이버광고", spend: 0 }))).toBe(false);
+  });
 });
 
 describe("유료 채널 광고 지표 (CTR·CPC)", () => {

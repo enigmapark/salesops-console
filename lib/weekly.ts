@@ -1,8 +1,19 @@
 import { fmtNum, fmtPct, fmtWon } from "./format";
 import { summarizePosts, type ThreadSummary } from "./threads";
 import { inWeek, type WeekRange } from "./week";
-import type { AppData, Lead, Product } from "./types";
+import type { AppData, Lead, Product, WeeklyActivity } from "./types";
 import type { MonthlyInsights } from "./report";
+
+// 해당 주·제품의 세일즈 활동 기록 조회
+export function activityFor(
+  data: AppData,
+  weekStart: string,
+  product: Product,
+): WeeklyActivity | undefined {
+  return (data.weeklyActivities ?? []).find(
+    (a) => a.weekStart === weekStart && a.product === product,
+  );
+}
 
 // 주간 현황 집계 — 링고/뉴로 각각 계산한다 (다른 상품이므로 합산 금지)
 export interface ProductWeekly {
@@ -50,6 +61,19 @@ export function buildWeeklyCopyText(
     }
     if (cur.contracts.length > 0) {
       lines.push(`- 계약: ${cur.contracts.map((l) => l.name).join(", ")}`);
+    }
+    const act = activityFor(data, w.start, p);
+    if (act && (act.coldEmails > 0 || act.calls > 0 || act.meetings > 0)) {
+      lines.push(
+        `- 활동: 콜드메일 ${act.coldEmails}건 · 통화 ${act.calls}건 · 미팅 ${act.meetings}건${act.note ? ` (${act.note})` : ""}`,
+      );
+    }
+  }
+  const comp = data.leads.filter((l) => l.competitor);
+  if (comp.length > 0) {
+    lines.push("■ 경쟁사 관련 리드");
+    for (const l of comp) {
+      lines.push(`- [${l.product}] ${l.name} — ${l.competitor} (현재 ${l.status})`);
     }
   }
   const t = threadsWeekly(data, w);

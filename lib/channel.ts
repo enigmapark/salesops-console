@@ -1,4 +1,7 @@
-import type { ChannelFunnel } from "./types";
+import type { AcquisitionSource, ChannelFunnel } from "./types";
+
+// 유료 매체(광고 채널) — 소진 금액이 아직 0이어도 무료 채널로 취급하지 않는다
+const PAID_SOURCES: AcquisitionSource[] = ["메타광고", "네이버광고"];
 
 // 분모 0 방어: 분모가 0이면 계산값 대신 null을 돌려준다.
 // (0%와 "데이터 없음"은 다르다 — 화면에서는 null을 "–"로 표시한다.)
@@ -29,7 +32,7 @@ export function cac(f: ChannelFunnel): number | null {
 }
 
 export function isFreeChannel(f: ChannelFunnel): boolean {
-  return f.spend === 0;
+  return f.spend === 0 && !PAID_SOURCES.includes(f.source);
 }
 
 // 유료 채널 광고 지표 — 입력이 없으면(무료 채널 등) null

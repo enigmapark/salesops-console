@@ -38,6 +38,7 @@ function migrateV1(parsed: Partial<AppData>): AppData {
     funnels: (parsed.funnels ?? []).map((f) => ({ ...f, product: inferFunnelProduct(f) })),
     threadPosts: parsed.threadPosts ?? [],
     reportComments: parsed.reportComments ?? [],
+    weeklyActivities: parsed.weeklyActivities ?? [],
   };
 }
 
@@ -65,6 +66,7 @@ export function loadAppData(): AppData {
         funnels: (parsed.funnels ?? []).map((f) => ({ ...f, product: inferFunnelProduct(f) })),
         threadPosts: parsed.threadPosts ?? [],
         reportComments: parsed.reportComments ?? [],
+        weeklyActivities: parsed.weeklyActivities ?? [],
       };
       if (needFix) saveAppData(result);
       return result;

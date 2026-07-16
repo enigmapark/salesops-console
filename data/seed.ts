@@ -332,4 +332,5 @@ export const seedData: AppData = {
     },
   ],
   reportComments: [],
+  weeklyActivities: [],
 };

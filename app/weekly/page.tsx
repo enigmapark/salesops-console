@@ -8,14 +8,81 @@ import { buildInsights } from "@/lib/report";
 import { getToday } from "@/lib/today";
 import { useAppData } from "@/lib/use-app-data";
 import { listWeeks, prevWeekOf, weekOf, type WeekRange } from "@/lib/week";
-import { buildWeeklyCopyText, productWeekly, threadsWeekly } from "@/lib/weekly";
-import type { Product } from "@/lib/types";
+import { activityFor, buildWeeklyCopyText, productWeekly, threadsWeekly } from "@/lib/weekly";
+import type { AppData, Product, WeeklyActivity } from "@/lib/types";
 
 const selectCls =
   "rounded-md border border-zinc-300 bg-white px-2.5 py-1.5 text-sm focus:border-zinc-500 focus:outline-none";
 
+// 세일즈 활동 직접 입력 (콜드메일 발송·통화·미팅)
+function ActivityEditor({
+  product,
+  week,
+  existing,
+  onSave,
+}: {
+  product: Product;
+  week: WeekRange;
+  existing?: WeeklyActivity;
+  onSave: (a: WeeklyActivity) => void;
+}) {
+  const [cold, setCold] = useState(existing?.coldEmails ?? 0);
+  const [calls, setCalls] = useState(existing?.calls ?? 0);
+  const [meetings, setMeetings] = useState(existing?.meetings ?? 0);
+  const [note, setNote] = useState(existing?.note ?? "");
+  const [saved, setSaved] = useState(false);
+  const num = (v: string) => Math.max(0, Number(v) || 0);
+  const inputCls =
+    "w-full rounded-md border border-zinc-300 bg-white px-2 py-1 text-sm focus:border-zinc-500 focus:outline-none";
+  return (
+    <div className="mt-3 rounded-lg border border-zinc-100 bg-zinc-50 p-3">
+      <p className="mb-2 text-xs font-semibold text-zinc-500">세일즈 활동 · {week.label} (직접 입력)</p>
+      <div className="grid grid-cols-3 gap-2">
+        <div>
+          <label className="mb-0.5 block text-[11px] text-zinc-500">콜드메일 발송</label>
+          <input type="number" min={0} className={inputCls} value={cold} onChange={(e) => setCold(num(e.target.value))} />
+        </div>
+        <div>
+          <label className="mb-0.5 block text-[11px] text-zinc-500">통화</label>
+          <input type="number" min={0} className={inputCls} value={calls} onChange={(e) => setCalls(num(e.target.value))} />
+        </div>
+        <div>
+          <label className="mb-0.5 block text-[11px] text-zinc-500">미팅</label>
+          <input type="number" min={0} className={inputCls} value={meetings} onChange={(e) => setMeetings(num(e.target.value))} />
+        </div>
+      </div>
+      <div className="mt-2 flex gap-2">
+        <input
+          className={inputCls}
+          placeholder="메모 (예: 언론사 명단 200곳 발송)"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
+        <button
+          onClick={() => {
+            onSave({
+              id: `${week.start}:${product}`,
+              weekStart: week.start,
+              product,
+              coldEmails: cold,
+              calls,
+              meetings,
+              note: note || undefined,
+            });
+            setSaved(true);
+            setTimeout(() => setSaved(false), 1500);
+          }}
+          className="whitespace-nowrap rounded-md bg-zinc-900 px-3 py-1 text-xs font-medium text-white hover:bg-zinc-700"
+        >
+          {saved ? "✓ 저장됨" : "저장"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function WeeklyPage() {
-  const { data } = useAppData();
+  const { data, update } = useAppData();
   const today = getToday();
   const [weekStart, setWeekStart] = useState<string>(() => weekOf(getToday()).start);
   const [copyText, setCopyText] = useState("");
@@ -37,6 +104,17 @@ export default function WeeklyPage() {
   const prevWeek = prevWeekOf(week);
   const insights = buildInsights(data, today.slice(0, 7), today);
   const threads = threadsWeekly(data, week);
+
+  const saveActivity = (a: WeeklyActivity) =>
+    update((d: AppData) => ({
+      ...d,
+      weeklyActivities: [
+        ...(d.weeklyActivities ?? []).filter((x) => x.id !== a.id),
+        a,
+      ],
+    }));
+
+  const competitorLeads = data.leads.filter((l) => l.competitor);
 
   const generate = () => {
     setCopyText(buildWeeklyCopyText(data, week, prevWeek, insights));
@@ -166,6 +244,14 @@ export default function WeeklyPage() {
                   ))}
                 </ul>
               )}
+
+              <ActivityEditor
+                key={`${p}-${week.start}`}
+                product={p}
+                week={week}
+                existing={activityFor(data, week.start, p)}
+                onSave={saveActivity}
+              />
             </section>
           );
         })}
@@ -178,6 +264,39 @@ export default function WeeklyPage() {
         <KpiCard label="스레드 반응률" value={fmtPct(threads.avgEngagementRate)} />
         <KpiCard label="스레드 유입 리드" value={fmtNum(threads.totalLeads)} />
       </div>
+
+      {/* 경쟁사 리드 현황 */}
+      <section className="rounded-xl border border-zinc-200 bg-white p-4">
+        <h2 className="mb-3 text-sm font-semibold">경쟁사 리드 현황 (이관·경합)</h2>
+        {competitorLeads.length === 0 ? (
+          <p className="py-4 text-center text-sm text-zinc-400">
+            경쟁사 관련 리드 없음 — 리드 수정에서 &ldquo;경쟁사&rdquo; 칸을 채우면 여기에 표시됩니다.
+          </p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500">
+                <th className="py-2 font-medium">제품</th>
+                <th className="py-2 font-medium">리드</th>
+                <th className="py-2 font-medium">경쟁사 (현재 이용 중)</th>
+                <th className="py-2 font-medium">단계</th>
+                <th className="py-2 font-medium">가능성</th>
+              </tr>
+            </thead>
+            <tbody>
+              {competitorLeads.map((l) => (
+                <tr key={l.id} className="border-b border-zinc-100 last:border-0">
+                  <td className="py-2 text-zinc-600">{l.product}</td>
+                  <td className="py-2 font-medium">{l.name}</td>
+                  <td className="py-2">{l.competitor}</td>
+                  <td className="py-2 text-zinc-600">{l.status}</td>
+                  <td className="py-2 text-zinc-600">{l.dealProbability ?? "–"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
 
       {/* 위험요인 & 다음 액션 (현재 시점) */}
       <div className="grid gap-4 lg:grid-cols-2">
