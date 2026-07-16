@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Account Team Monthly Report",
+  title: "Account Team Report",
   description: "리드 스코어링·채널 퍼널·월간 보고를 한곳에서 관리하는 어카운트팀 대시보드",
 };
 
