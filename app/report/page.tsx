@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { KpiCard } from "@/components/KpiCard";
-import { dealRate, isFreeChannel } from "@/lib/channel";
+import { dealRate, isFreeChannel, safeDiv } from "@/lib/channel";
 import { fmtNum, fmtPct, fmtWon } from "@/lib/format";
 import {
   availableMonths,
@@ -69,6 +69,11 @@ export default function ReportPage() {
   const monthDealCount = monthDealLeads.length;
   const monthDealAmount = monthDealLeads.reduce((sum, l) => sum + l.expectedAmount, 0);
 
+  // 제품별 광고비 (해당 월 채널 퍼널의 소진 금액 합)
+  const spendBy = (p: Product) =>
+    report.funnels.filter((f) => f.product === p).reduce((s, f) => s + f.spend, 0);
+  const totalNewLeads = report.lingo.newLeads + report.neuro.newLeads;
+
   const setField = (key: keyof ReportComment, value: string) =>
     setDraft((d) => ({ ...d, [key]: value }));
 
@@ -122,6 +127,60 @@ export default function ReportPage() {
 
       <h2 className="hidden text-lg font-bold print:block">[Account Team 월간 보고] {month}</h2>
 
+      {/* 제품 비교 — 광고비·리드·계약을 한눈에 */}
+      <section className="rounded-xl border border-zinc-200 bg-white p-4">
+        <h2 className="mb-3 text-sm font-semibold">{month} 제품 비교 (한눈에)</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[480px] text-sm">
+            <thead>
+              <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500">
+                <th className="py-2 font-medium">구분</th>
+                <th className="py-2 text-right font-medium">링고</th>
+                <th className="py-2 text-right font-medium">뉴로</th>
+                <th className="py-2 text-right font-medium">전체</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-b border-zinc-100">
+                <td className="py-2.5 font-medium">광고비 (소진)</td>
+                <td className="py-2.5 text-right tabular-nums">{fmtWon(spendBy("링고"))}</td>
+                <td className="py-2.5 text-right tabular-nums">{fmtWon(spendBy("뉴로"))}</td>
+                <td className="py-2.5 text-right font-semibold tabular-nums">
+                  {fmtWon(report.channelTotals.spend)}
+                </td>
+              </tr>
+              <tr className="border-b border-zinc-100">
+                <td className="py-2.5 font-medium">리드 획득</td>
+                <td className="py-2.5 text-right tabular-nums">{fmtNum(report.lingo.newLeads)}건</td>
+                <td className="py-2.5 text-right tabular-nums">{fmtNum(report.neuro.newLeads)}건</td>
+                <td className="py-2.5 text-right font-semibold tabular-nums">
+                  {fmtNum(totalNewLeads)}건
+                </td>
+              </tr>
+              <tr className="border-b border-zinc-100">
+                <td className="py-2.5 font-medium">계약 건수</td>
+                <td className="py-2.5 text-right tabular-nums">{fmtNum(report.lingo.deals)}건</td>
+                <td className="py-2.5 text-right tabular-nums">{fmtNum(report.neuro.deals)}건</td>
+                <td className="py-2.5 text-right font-semibold tabular-nums">
+                  {fmtNum(monthDealCount)}건
+                </td>
+              </tr>
+              <tr>
+                <td className="py-2.5 font-medium">전환율 (계약÷리드)</td>
+                <td className="py-2.5 text-right tabular-nums">{fmtPct(report.lingo.conversionRate)}</td>
+                <td className="py-2.5 text-right tabular-nums">{fmtPct(report.neuro.conversionRate)}</td>
+                <td className="py-2.5 text-right font-semibold tabular-nums">
+                  {fmtPct(safeDiv(monthDealCount, totalNewLeads))}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-2 text-[11px] text-zinc-400">
+          광고비는 해당 월 채널 퍼널의 소진 금액 합계 (공통 채널 광고비는 전체에만 포함)
+        </p>
+      </section>
+
       {/* 제품별 집계 — 링고 / 뉴로 각각 신규 리드·계약·채널 내역 */}
       <div className="grid gap-4 lg:grid-cols-2">
         {(["링고", "뉴로"] as Product[]).map((product) => {
@@ -143,7 +202,7 @@ export default function ReportPage() {
                   {product === "링고" ? "인터넷신문 CMS" : "AI 광고"}
                 </span>
               </h2>
-              <div className="mb-3 grid grid-cols-3 gap-3">
+              <div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <KpiCard
                   label="신규 리드"
                   value={fmtNum(cur.newLeads)}
@@ -153,6 +212,11 @@ export default function ReportPage() {
                   label="계약 건수"
                   value={`${fmtNum(cur.deals)}건`}
                   sub={`${prev ? deltaCountLabel(cur.deals, prev.deals) : ""}${amount > 0 ? ` · ${fmtWon(amount)}` : ""}`}
+                />
+                <KpiCard
+                  label="광고비 (소진)"
+                  value={spendBy(product) > 0 ? fmtWon(spendBy(product)) : "0원"}
+                  sub="해당 월 채널 퍼널 합계"
                 />
                 <KpiCard label="전환율" value={fmtPct(cur.conversionRate)} sub="계약 ÷ 신규 리드" />
               </div>
