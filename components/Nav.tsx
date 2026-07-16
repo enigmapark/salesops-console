@@ -8,6 +8,7 @@ const LINKS = [
   { href: "/dashboard", label: "대시보드" },
   { href: "/leads", label: "리드" },
   { href: "/channels", label: "채널" },
+  { href: "/weekly", label: "주간 현황" },
   { href: "/report", label: "월간 보고" },
   { href: "/threads", label: "스레드(SNS)" },
 ];
