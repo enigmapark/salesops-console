@@ -24,7 +24,6 @@ type ModalState =
 export default function LeadsPage() {
   const { data, update } = useAppData();
   const [modal, setModal] = useState<ModalState>(null);
-  const [productFilter, setProductFilter] = useState<"전체" | Product>("전체");
   const [gradeFilter, setGradeFilter] = useState<"전체" | Grade>("전체");
   const [sourceFilter, setSourceFilter] = useState<"전체" | AcquisitionSource>("전체");
 
@@ -32,13 +31,13 @@ export default function LeadsPage() {
 
   const today = getToday();
 
+  // 링고/뉴로는 다른 상품 — 표를 제품별로 분리한다 (필터는 두 표에 공통 적용)
   const filtered = data.leads.filter(
     (l) =>
-      (productFilter === "전체" || l.product === productFilter) &&
       (gradeFilter === "전체" || calcGrade(l) === gradeFilter) &&
       (sourceFilter === "전체" || l.source === sourceFilter),
   );
-  const leads = sortByScoreDesc(filtered);
+  const leadsBy = (p: Product) => sortByScoreDesc(filtered.filter((l) => l.product === p));
   const contactCount = data.leads.filter((l) => needsContact(l, today)).length;
 
   // 상단 요약 — 링고/뉴로 구분 집계
@@ -71,16 +70,6 @@ export default function LeadsPage() {
           </p>
         </div>
         <div className="ml-auto flex flex-wrap items-center gap-2">
-          <select
-            className={filterCls}
-            value={productFilter}
-            onChange={(e) => setProductFilter(e.target.value as typeof productFilter)}
-          >
-            <option>전체</option>
-            {PRODUCTS.map((p) => (
-              <option key={p}>{p}</option>
-            ))}
-          </select>
           <select
             className={filterCls}
             value={gradeFilter}
@@ -121,14 +110,21 @@ export default function LeadsPage() {
         <KpiCard label="연락 요망" value={fmtNum(contactCount)} sub="다음 연락일이 오늘이거나 지남" />
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white">
+      {(["링고", "뉴로"] as Product[]).map((product) => {
+      const rows = leadsBy(product);
+      return (
+      <div key={product} className="mb-6">
+        <h2 className="mb-2 text-sm font-semibold">
+          {product} 리드 <span className="font-normal text-zinc-400">({rows.length}건)</span>
+        </h2>
+        <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white">
         <table className="w-full min-w-[900px] text-sm">
           <thead>
             <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500">
               <th className="px-3 py-2.5 font-medium">이름</th>
-              <th className="px-3 py-2.5 font-medium">제품</th>
+              <th className="px-3 py-2.5 font-medium">유형</th>
               <th className="px-3 py-2.5 font-medium">채널</th>
-              <th className="px-3 py-2.5 font-medium">상태</th>
+              <th className="px-3 py-2.5 font-medium">단계</th>
               <th className="px-3 py-2.5 text-right font-medium">점수</th>
               <th className="px-3 py-2.5 font-medium">등급</th>
               <th className="px-3 py-2.5 font-medium">다음 연락</th>
@@ -138,20 +134,17 @@ export default function LeadsPage() {
             </tr>
           </thead>
           <tbody>
-            {leads.length === 0 && (
+            {rows.length === 0 && (
               <tr>
                 <td colSpan={10} className="px-3 py-10 text-center text-zinc-400">
-                  조건에 맞는 리드가 없습니다.
+                  조건에 맞는 {product} 리드가 없습니다.
                 </td>
               </tr>
             )}
-            {leads.map((l) => (
+            {rows.map((l) => (
               <tr key={l.id} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50">
                 <td className="px-3 py-2.5 font-medium">{l.name}</td>
-                <td className="px-3 py-2.5 text-zinc-600">
-                  {l.product}
-                  <span className="ml-1 text-xs text-zinc-400">{l.type}</span>
-                </td>
+                <td className="px-3 py-2.5 text-zinc-600">{l.type}</td>
                 <td className="px-3 py-2.5 text-zinc-600">{l.source}</td>
                 <td className="px-3 py-2.5 text-zinc-600">{l.status}</td>
                 <td className="px-3 py-2.5 text-right font-bold tabular-nums">{calcScore(l)}</td>
@@ -204,7 +197,10 @@ export default function LeadsPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
+      );
+      })}
 
       {modal?.mode === "add" && (
         <LeadFormModal onSave={saveLead} onClose={() => setModal(null)} />

@@ -9,6 +9,7 @@ import {
   mqlRate,
   safeDiv,
   sortByDealRateDesc,
+  sortPaidFirst,
   sqlRate,
   sumFunnels,
 } from "../lib/channel";
@@ -116,6 +117,17 @@ describe("sortByDealRateDesc — 계약전환율 내림차순", () => {
     const none = makeFunnel({ id: "none", leads: 0, deals: 0 });
     const sorted = sortByDealRateDesc([none, low, high]);
     expect(sorted.map((f) => f.id)).toEqual(["high", "low", "none"]);
+  });
+});
+
+describe("sortPaidFirst — 유료 채널(광고) 우선 정렬", () => {
+  it("유료 채널이 소진 금액 순으로 맨 위, 무료는 전환율 순으로 그 아래", () => {
+    const meta = makeFunnel({ id: "meta", source: "메타광고", spend: 1500000, leads: 10, deals: 0 });
+    const naver = makeFunnel({ id: "naver", source: "네이버광고", spend: 900000, leads: 10, deals: 1 });
+    const freeHigh = makeFunnel({ id: "freeHigh", spend: 0, leads: 10, deals: 5 });
+    const freeLow = makeFunnel({ id: "freeLow", spend: 0, leads: 10, deals: 1 });
+    const sorted = sortPaidFirst([freeLow, naver, freeHigh, meta]);
+    expect(sorted.map((f) => f.id)).toEqual(["meta", "naver", "freeHigh", "freeLow"]);
   });
 });
 

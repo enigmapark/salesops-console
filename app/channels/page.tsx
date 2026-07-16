@@ -11,7 +11,7 @@ import {
   dealRate,
   isFreeChannel,
   mqlRate,
-  sortByDealRateDesc,
+  sortPaidFirst,
   sqlRate,
 } from "@/lib/channel";
 import { fmtNum, fmtPct, fmtWon } from "@/lib/format";
@@ -30,11 +30,11 @@ export default function ChannelsPage() {
 
   if (!data) return <p className="py-16 text-center text-sm text-zinc-400">불러오는 중…</p>;
 
-  // 제품별 그룹 (링고 / 뉴로 / 공통) — 데이터가 있는 그룹만 표시
+  // 제품별 그룹 (링고 / 뉴로 / 공통) — 유료 광고(네이버·메타)가 맨 위, 무료는 전환율 순
   const groups = (["링고", "뉴로", "공통"] as const)
     .map((product) => ({
       product,
-      rows: sortByDealRateDesc(data.funnels.filter((f) => (f.product ?? "공통") === product)),
+      rows: sortPaidFirst(data.funnels.filter((f) => (f.product ?? "공통") === product)),
     }))
     .filter((g) => g.rows.length > 0);
 
@@ -61,8 +61,9 @@ export default function ChannelsPage() {
         <div>
           <h1 className="text-xl font-bold">채널별 획득 퍼널</h1>
           <p className="text-xs text-zinc-500">
-            계약전환율 높은 순 · <span className="rounded bg-emerald-50 px-1 text-emerald-700">초록 배경</span>{" "}
-            = 무료 채널 · &ldquo;–&rdquo; = 분모 0(데이터 없음)
+            유료 광고(네이버·메타) 우선, 무료는 전환율 순 ·{" "}
+            <span className="rounded bg-emerald-50 px-1 text-emerald-700">초록 배경</span> = 무료 채널
+            · &ldquo;–&rdquo; = 분모 0(데이터 없음)
           </p>
         </div>
         <button

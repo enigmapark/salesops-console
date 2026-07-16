@@ -55,6 +55,14 @@ export function sortByDealRateDesc(funnels: ChannelFunnel[]): ChannelFunnel[] {
   });
 }
 
+// 채널 목록 정렬(채널 화면용): 유료 광고 채널(네이버·메타 등)을 맨 위로 — 소진 금액 큰 순,
+// 그 아래 무료 채널은 계약전환율 순
+export function sortPaidFirst(funnels: ChannelFunnel[]): ChannelFunnel[] {
+  const paid = funnels.filter((f) => !isFreeChannel(f)).sort((a, b) => b.spend - a.spend);
+  const free = sortByDealRateDesc(funnels.filter((f) => isFreeChannel(f)));
+  return [...paid, ...free];
+}
+
 // 여러 퍼널 행 합산 (대시보드·월간 보고용)
 export function sumFunnels(funnels: ChannelFunnel[]) {
   return funnels.reduce(
