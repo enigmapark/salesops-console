@@ -237,7 +237,7 @@ export default function WeeklyPage() {
                   sub={`전주 ${prev.newLeads.length}건`}
                 />
                 <KpiCard
-                  label="계약 (계약일 기준)"
+                  label="계약"
                   value={`${fmtNum(cur.contracts.length)}건`}
                   sub={`${parseInt(weekMonth.slice(5), 10)}월 누적 ${monthDeals}건`}
                 />
