@@ -169,6 +169,51 @@ export default function WeeklyPage() {
         </div>
       </div>
 
+      {/* 대표용 한 줄 요약 — 광고비 → 문의 → 계약 흐름을 제품별로 */}
+      <section className="rounded-xl bg-zinc-900 p-4 text-white">
+        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
+          이번 주 한 줄 요약 · {week.label}
+        </p>
+        {(["링고", "뉴로"] as Product[]).map((p) => {
+          const stats = adStatsFor(data, week.start, p);
+          const spend = stats.reduce((s, a) => s + a.spend, 0);
+          const inq = stats.reduce((s, a) => s + a.inquiries, 0);
+          const wk = productWeekly(data.leads, week, p);
+          const monthDeals = contractsInMonth(
+            data.leads.filter((l) => l.product === p),
+            week.start.slice(0, 7),
+          ).length;
+          const cpl = inq > 0 ? spend / inq : null;
+          return (
+            <p key={p} className="mt-2 text-sm leading-relaxed">
+              <span className="mr-1.5 rounded bg-white/15 px-1.5 py-0.5 text-xs font-bold">{p}</span>
+              광고비 {fmtWon(spend)} → 문의 {inq}건
+              {cpl !== null && <span className="text-zinc-300"> (CPL {fmtWon(cpl)})</span>} · 신규
+              리드 {wk.newLeads.length}건 · 계약 {wk.contracts.length}건
+              <span className="text-zinc-400"> (월 누적 {monthDeals}건)</span>
+              {wk.mrr > 0 && <span> · 신규 MRR {fmtWon(wk.mrr)}</span>}
+            </p>
+          );
+        })}
+        {(() => {
+          const all = (data.weeklyAdStats ?? []).filter((a) => a.weekStart === week.start);
+          const spend = all.reduce((s, a) => s + a.spend, 0);
+          const inq = all.reduce((s, a) => s + a.inquiries, 0);
+          const newLeads =
+            productWeekly(data.leads, week, "링고").newLeads.length +
+            productWeekly(data.leads, week, "뉴로").newLeads.length;
+          const deals =
+            productWeekly(data.leads, week, "링고").contracts.length +
+            productWeekly(data.leads, week, "뉴로").contracts.length;
+          return (
+            <p className="mt-2.5 border-t border-white/10 pt-2 text-xs text-zinc-400">
+              전체 합계 — 광고비 {fmtWon(spend)} · 문의 {inq}건 · 신규 리드 {newLeads}건 · 계약{" "}
+              {deals}건
+            </p>
+          );
+        })()}
+      </section>
+
       {/* 제품별 주간 패널 — 링고/뉴로 각각 */}
       <div className="grid gap-4 xl:grid-cols-2">
         {(["링고", "뉴로"] as Product[]).map((p) => {
