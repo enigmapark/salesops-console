@@ -161,6 +161,7 @@ export default function DashboardPage() {
                   label="진행 파이프라인"
                   value={e.pipeline.amount > 0 ? fmtWon(e.pipeline.amount) : "–"}
                   sub={`활성 ${e.pipeline.count}건의 계약가치`}
+                  small
                 />
                 <KpiCard
                   label="코호트 전환율"

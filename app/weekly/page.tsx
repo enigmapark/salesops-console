@@ -250,6 +250,7 @@ export default function WeeklyPage() {
                   label="진행 파이프라인"
                   value={pipe.amount > 0 ? fmtWon(pipe.amount) : "–"}
                   sub={`현재 활성 ${pipe.count}건`}
+                  small
                 />
               </div>
 
