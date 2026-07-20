@@ -136,7 +136,7 @@ export default function WeeklyPage() {
         <div>
           <h1 className="text-xl font-bold">주간 현황</h1>
           <p className="text-xs text-zinc-500">
-            매주 수요일 대표 보고용 · 계약은 계약일 기준 · 월 단위는 &ldquo;월간 보고&rdquo; 메뉴
+            수요일 보고 주기 (수~화 7일) · 계약은 계약일 기준 · 월 단위는 &ldquo;월간 보고&rdquo; 메뉴
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">

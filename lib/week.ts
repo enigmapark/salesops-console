@@ -1,8 +1,9 @@
-// 주(월요일~일요일) 단위 계산 유틸
+// 주 단위 계산 유틸 — 수요일 시작(수~화 7일).
+// 매주 수요일 대표 보고 주기에 맞춰, 수요일 아침 미팅에서 직전 화요일까지가 완결된 한 주가 된다.
 export interface WeekRange {
-  start: string; // YYYY-MM-DD (월요일)
-  end: string; // YYYY-MM-DD (일요일)
-  label: string; // 예: 07/13 ~ 07/19
+  start: string; // YYYY-MM-DD (수요일)
+  end: string; // YYYY-MM-DD (화요일)
+  label: string; // 예: 07/15 ~ 07/21
 }
 
 function toIso(d: Date): string {
@@ -13,13 +14,13 @@ function toIso(d: Date): string {
 
 export function weekOf(dateStr: string): WeekRange {
   const d = new Date(`${dateStr}T00:00:00`);
-  const dayFromMon = (d.getDay() + 6) % 7; // 월=0 … 일=6
-  const mon = new Date(d);
-  mon.setDate(d.getDate() - dayFromMon);
-  const sun = new Date(mon);
-  sun.setDate(mon.getDate() + 6);
-  const start = toIso(mon);
-  const end = toIso(sun);
+  const dayFromWed = (d.getDay() + 4) % 7; // 수=0 … 화=6
+  const wed = new Date(d);
+  wed.setDate(d.getDate() - dayFromWed);
+  const tue = new Date(wed);
+  tue.setDate(wed.getDate() + 6);
+  const start = toIso(wed);
+  const end = toIso(tue);
   return {
     start,
     end,
