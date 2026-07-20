@@ -267,10 +267,15 @@ export default function WeeklyPage() {
 
       {/* 경쟁사 리드 현황 */}
       <section className="rounded-xl border border-zinc-200 bg-white p-4">
-        <h2 className="mb-3 text-sm font-semibold">경쟁사 리드 현황 (이관·경합)</h2>
+        <h2 className="mb-3 text-sm font-semibold">
+          경쟁사에서 넘어오는 리드 (이관·경합)
+          <span className="ml-1.5 text-xs font-normal text-zinc-400">
+            경쟁사 이용 고객을 우리 쪽으로 유치 중인 딜
+          </span>
+        </h2>
         {competitorLeads.length === 0 ? (
           <p className="py-4 text-center text-sm text-zinc-400">
-            경쟁사 관련 리드 없음 — 리드 수정에서 &ldquo;경쟁사&rdquo; 칸을 채우면 여기에 표시됩니다.
+            해당 리드 없음 — 리드 수정에서 &ldquo;경쟁사&rdquo; 칸을 채우면 여기에 표시됩니다.
           </p>
         ) : (
           <table className="w-full text-sm">
@@ -278,7 +283,7 @@ export default function WeeklyPage() {
               <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500">
                 <th className="py-2 font-medium">제품</th>
                 <th className="py-2 font-medium">리드</th>
-                <th className="py-2 font-medium">경쟁사 (현재 이용 중)</th>
+                <th className="py-2 font-medium">기존 이용 중인 경쟁사</th>
                 <th className="py-2 font-medium">단계</th>
                 <th className="py-2 font-medium">가능성</th>
               </tr>

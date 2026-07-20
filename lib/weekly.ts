@@ -71,9 +71,9 @@ export function buildWeeklyCopyText(
   }
   const comp = data.leads.filter((l) => l.competitor);
   if (comp.length > 0) {
-    lines.push("■ 경쟁사 관련 리드");
+    lines.push("■ 경쟁사에서 넘어오는 리드 (이관·경합)");
     for (const l of comp) {
-      lines.push(`- [${l.product}] ${l.name} — ${l.competitor} (현재 ${l.status})`);
+      lines.push(`- [${l.product}] ${l.name} — ${l.competitor}에서 이관 추진 중 (현재 ${l.status})`);
     }
   }
   const t = threadsWeekly(data, w);
