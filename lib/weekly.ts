@@ -1,8 +1,26 @@
 import { fmtNum, fmtPct, fmtWon } from "./format";
 import { summarizePosts, type ThreadSummary } from "./threads";
 import { inWeek, type WeekRange } from "./week";
-import type { AppData, Lead, Product, WeeklyActivity } from "./types";
+import { safeDiv } from "./channel";
+import type { AppData, Lead, Product, WeeklyActivity, WeeklyAdStat } from "./types";
 import type { MonthlyInsights } from "./report";
+
+// 해당 주·제품의 매체별 광고 성과 (메타 먼저)
+export function adStatsFor(data: AppData, weekStart: string, product: Product): WeeklyAdStat[] {
+  return (data.weeklyAdStats ?? [])
+    .filter((a) => a.weekStart === weekStart && a.product === product)
+    .sort((a, b) => (a.source === b.source ? 0 : a.source === "메타광고" ? -1 : 1));
+}
+
+export function adCtr(a: WeeklyAdStat): number | null {
+  return safeDiv(a.clicks, a.impressions);
+}
+export function adCpc(a: WeeklyAdStat): number | null {
+  return safeDiv(a.spend, a.clicks);
+}
+export function adCpl(a: WeeklyAdStat): number | null {
+  return safeDiv(a.spend, a.inquiries);
+}
 
 // 해당 주·제품의 세일즈 활동 기록 조회
 export function activityFor(
@@ -61,6 +79,13 @@ export function buildWeeklyCopyText(
     }
     if (cur.contracts.length > 0) {
       lines.push(`- 계약: ${cur.contracts.map((l) => l.name).join(", ")}`);
+    }
+    for (const a of adStatsFor(data, w.start, p)) {
+      const label = a.source === "메타광고" ? "메타" : "네이버";
+      const cpl = adCpl(a);
+      lines.push(
+        `- 광고(${label}): 소진 ${fmtWon(a.spend)} · 노출 ${fmtNum(a.impressions)} · 클릭 ${fmtNum(a.clicks)} (CTR ${fmtPct(adCtr(a), 2)}) · 문의 ${a.inquiries}건${cpl !== null ? ` · CPL ${fmtWon(cpl)}` : ""}`,
+      );
     }
     const act = activityFor(data, w.start, p);
     if (act && (act.coldEmails > 0 || act.calls > 0 || act.meetings > 0)) {

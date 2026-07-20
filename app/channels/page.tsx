@@ -160,9 +160,9 @@ export default function ChannelsPage() {
       {/* 유료 채널 광고 성과 상세 */}
       {paidFunnels.length > 0 && (
         <section className="mt-4 rounded-xl border border-zinc-200 bg-white p-4">
-          <h2 className="mb-1 text-sm font-semibold">유료 채널 광고 성과</h2>
+          <h2 className="mb-1 text-sm font-semibold">유료 채널 광고 성과 (월 누적)</h2>
           <p className="mb-3 text-xs text-zinc-500">
-            소진 금액 큰 순 · 노출·클릭은 채널 수정에서 입력합니다
+            해당 월 누적 기준 · 주 단위 성과는 &ldquo;주간 현황&rdquo; 메뉴에서 확인
           </p>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-sm">

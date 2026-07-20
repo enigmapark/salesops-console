@@ -132,6 +132,18 @@ export interface WeeklyActivity {
   note?: string;
 }
 
+// 주간 광고 성과 (매체별 — 주간 현황 표시용. 채널 화면의 월 누적과 별도)
+export interface WeeklyAdStat {
+  id: string; // `${weekStart}:${product}:${source}`
+  weekStart: string; // 해당 주 수요일 (YYYY-MM-DD)
+  product: Product;
+  source: "메타광고" | "네이버광고";
+  spend: number;
+  impressions: number;
+  clicks: number;
+  inquiries: number; // 신규 문의
+}
+
 // localStorage에 통째로 저장하는 앱 데이터 묶음
 export interface AppData {
   leads: Lead[];
@@ -139,4 +151,5 @@ export interface AppData {
   threadPosts: ThreadPost[];
   reportComments: ReportComment[];
   weeklyActivities: WeeklyActivity[];
+  weeklyAdStats: WeeklyAdStat[];
 }

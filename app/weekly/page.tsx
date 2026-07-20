@@ -8,7 +8,16 @@ import { buildInsights } from "@/lib/report";
 import { getToday } from "@/lib/today";
 import { useAppData } from "@/lib/use-app-data";
 import { listWeeks, prevWeekOf, weekOf, type WeekRange } from "@/lib/week";
-import { activityFor, buildWeeklyCopyText, productWeekly, threadsWeekly } from "@/lib/weekly";
+import {
+  activityFor,
+  adCpc,
+  adCpl,
+  adCtr,
+  adStatsFor,
+  buildWeeklyCopyText,
+  productWeekly,
+  threadsWeekly,
+} from "@/lib/weekly";
 import type { AppData, Product, WeeklyActivity } from "@/lib/types";
 
 const selectCls =
@@ -193,6 +202,55 @@ export default function WeeklyPage() {
                   sub={`현재 활성 ${pipe.count}건`}
                 />
               </div>
+
+              {/* 주간 광고 성과 (매체별) */}
+              {(() => {
+                const stats = adStatsFor(data, week.start, p);
+                if (stats.length === 0) return null;
+                return (
+                  <div className="mb-3">
+                    <p className="mb-1.5 text-xs font-semibold text-zinc-500">
+                      주간 광고 성과 ({week.label})
+                    </p>
+                    <div className="overflow-x-auto">
+                      <table className="w-full min-w-[520px] text-sm">
+                        <thead>
+                          <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500">
+                            <th className="py-1.5 font-medium">매체</th>
+                            <th className="py-1.5 text-right font-medium">소진</th>
+                            <th className="py-1.5 text-right font-medium">노출</th>
+                            <th className="py-1.5 text-right font-medium">클릭</th>
+                            <th className="py-1.5 text-right font-medium">CTR</th>
+                            <th className="py-1.5 text-right font-medium">CPC</th>
+                            <th className="py-1.5 text-right font-medium">문의</th>
+                            <th className="py-1.5 text-right font-medium">CPL</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {stats.map((a) => (
+                            <tr key={a.id} className="border-b border-zinc-100 last:border-0">
+                              <td className="py-1.5 font-medium">
+                                {a.source === "메타광고" ? "메타" : "네이버"}
+                              </td>
+                              <td className="py-1.5 text-right font-semibold tabular-nums">
+                                {fmtWon(a.spend)}
+                              </td>
+                              <td className="py-1.5 text-right tabular-nums">{fmtNum(a.impressions)}</td>
+                              <td className="py-1.5 text-right tabular-nums">{fmtNum(a.clicks)}</td>
+                              <td className="py-1.5 text-right tabular-nums">{fmtPct(adCtr(a), 2)}</td>
+                              <td className="py-1.5 text-right tabular-nums">{fmtWon(adCpc(a))}</td>
+                              <td className="py-1.5 text-right tabular-nums">{a.inquiries}건</td>
+                              <td className="py-1.5 text-right font-semibold tabular-nums">
+                                {fmtWon(adCpl(a))}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* 이번 주 신규 리드 목록 */}
               <p className="mb-1.5 text-xs font-semibold text-zinc-500">이번 주 신규 리드</p>
