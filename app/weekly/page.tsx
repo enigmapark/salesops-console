@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { KpiCard } from "@/components/KpiCard";
-import { pipelineValue } from "@/lib/exec";
+import { contractsInMonth, pipelineValue } from "@/lib/exec";
 import { fmtNum, fmtPct, fmtWon } from "@/lib/format";
 import { buildInsights } from "@/lib/report";
 import { getToday } from "@/lib/today";
@@ -175,6 +175,11 @@ export default function WeeklyPage() {
           const cur = productWeekly(data.leads, week, p);
           const prev = productWeekly(data.leads, prevWeek, p);
           const pipe = pipelineValue(data.leads.filter((l) => l.product === p));
+          const weekMonth = week.start.slice(0, 7);
+          const monthDeals = contractsInMonth(
+            data.leads.filter((l) => l.product === p),
+            weekMonth,
+          ).length;
           return (
             <section key={p} className="rounded-xl border border-zinc-200 bg-white p-4">
               <h2 className="mb-3 text-sm font-semibold">
@@ -187,9 +192,9 @@ export default function WeeklyPage() {
                   sub={`전주 ${prev.newLeads.length}건`}
                 />
                 <KpiCard
-                  label="계약"
+                  label="계약 (계약일 기준)"
                   value={`${fmtNum(cur.contracts.length)}건`}
-                  sub={`전주 ${prev.contracts.length}건 · 계약일 기준`}
+                  sub={`${parseInt(weekMonth.slice(5), 10)}월 누적 ${monthDeals}건`}
                 />
                 <KpiCard
                   label="신규 MRR"
