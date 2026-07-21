@@ -145,6 +145,12 @@ export interface WeeklyAdStat {
   inquiries: number; // 신규 문의
 }
 
+// 주간 코멘트 (대표 보고용 한 줄 해석·계획 — 주 단위 1건)
+export interface WeeklyNote {
+  weekStart: string; // 해당 주 수요일 (YYYY-MM-DD)
+  text: string;
+}
+
 // localStorage에 통째로 저장하는 앱 데이터 묶음
 export interface AppData {
   leads: Lead[];
@@ -153,4 +159,5 @@ export interface AppData {
   reportComments: ReportComment[];
   weeklyActivities: WeeklyActivity[];
   weeklyAdStats: WeeklyAdStat[];
+  weeklyNotes: WeeklyNote[];
 }

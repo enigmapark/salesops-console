@@ -23,6 +23,42 @@ import type { AppData, Product, WeeklyActivity } from "@/lib/types";
 const selectCls =
   "rounded-md border border-zinc-300 bg-white px-2.5 py-1.5 text-sm focus:border-zinc-500 focus:outline-none";
 
+// 주간 코멘트 (대표 보고용 해석·계획)
+function WeeklyNoteEditor({
+  initial,
+  onSave,
+}: {
+  initial: string;
+  onSave: (text: string) => void;
+}) {
+  const [text, setText] = useState(initial);
+  const [saved, setSaved] = useState(false);
+  return (
+    <section className="rounded-xl border border-zinc-200 bg-white p-4">
+      <div className="mb-2 flex items-center justify-between">
+        <h2 className="text-sm font-semibold">이번 주 코멘트 (대표 보고용 해석·다음 액션)</h2>
+        <button
+          onClick={() => {
+            onSave(text);
+            setSaved(true);
+            setTimeout(() => setSaved(false), 1500);
+          }}
+          className="rounded-md bg-zinc-900 px-3 py-1 text-xs font-medium text-white hover:bg-zinc-700"
+        >
+          {saved ? "✓ 저장됨" : "저장"}
+        </button>
+      </div>
+      <textarea
+        rows={4}
+        className="w-full rounded-md border border-zinc-300 bg-white px-2.5 py-1.5 text-sm focus:border-zinc-500 focus:outline-none"
+        placeholder="이번 주 숫자에 대한 해석과 다음 액션을 적으세요. (복사용 텍스트에도 포함됩니다)"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+      />
+    </section>
+  );
+}
+
 // 세일즈 활동 직접 입력 (콜드메일 발송·통화·미팅)
 function ActivityEditor({
   product,
@@ -124,6 +160,16 @@ export default function WeeklyPage() {
     }));
 
   const competitorLeads = data.leads.filter((l) => l.competitor);
+  const weeklyNote = (data.weeklyNotes ?? []).find((n) => n.weekStart === week.start)?.text ?? "";
+
+  const saveNote = (text: string) =>
+    update((d: AppData) => ({
+      ...d,
+      weeklyNotes: [
+        ...(d.weeklyNotes ?? []).filter((n) => n.weekStart !== week.start),
+        { weekStart: week.start, text },
+      ],
+    }));
 
   const generate = () => {
     setCopyText(buildWeeklyCopyText(data, week, prevWeek, insights));
@@ -220,6 +266,9 @@ export default function WeeklyPage() {
           );
         })()}
       </section>
+
+      {/* 주간 코멘트 (대표 보고용 해석·계획) */}
+      <WeeklyNoteEditor key={week.start} initial={weeklyNote} onSave={saveNote} />
 
       {/* 제품별 주간 패널 — 링고/뉴로 각각 */}
       <div className="grid gap-4 xl:grid-cols-2">

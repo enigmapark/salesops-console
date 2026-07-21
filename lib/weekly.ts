@@ -119,5 +119,10 @@ export function buildWeeklyCopyText(
     lines.push("■ 다음 액션");
     for (const r of insights.recommendations) lines.push(`- ${r}`);
   }
+  const note = (data.weeklyNotes ?? []).find((n) => n.weekStart === w.start)?.text?.trim();
+  if (note) {
+    lines.push("■ 코멘트");
+    for (const ln of note.split("\n")) lines.push(ln.trim() ? `- ${ln.trim()}` : "");
+  }
   return lines.join("\n");
 }

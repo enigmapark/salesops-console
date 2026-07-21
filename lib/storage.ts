@@ -40,6 +40,7 @@ function migrateV1(parsed: Partial<AppData>): AppData {
     reportComments: parsed.reportComments ?? [],
     weeklyActivities: parsed.weeklyActivities ?? [],
     weeklyAdStats: parsed.weeklyAdStats ?? [],
+    weeklyNotes: parsed.weeklyNotes ?? [],
   };
 }
 
@@ -69,6 +70,7 @@ export function loadAppData(): AppData {
         reportComments: parsed.reportComments ?? [],
         weeklyActivities: parsed.weeklyActivities ?? [],
         weeklyAdStats: parsed.weeklyAdStats ?? [],
+        weeklyNotes: parsed.weeklyNotes ?? [],
       };
       if (needFix) saveAppData(result);
       return result;
