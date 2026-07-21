@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { KpiCard } from "@/components/KpiCard";
 import { contractsInMonth, newMrrInMonth, pipelineValue } from "@/lib/exec";
 import { fmtNum, fmtPct, fmtWon } from "@/lib/format";
@@ -33,6 +33,10 @@ function WeeklyNoteEditor({
 }) {
   const [text, setText] = useState(initial);
   const [saved, setSaved] = useState(false);
+  // 저장된 코멘트가 나중에 로드되면(초기엔 빈 seed) 입력칸에 반영
+  useEffect(() => {
+    setText(initial);
+  }, [initial]);
   return (
     <section className="rounded-xl border border-zinc-200 bg-white p-4">
       <div className="mb-2 flex items-center justify-between">
