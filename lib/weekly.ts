@@ -36,19 +36,23 @@ export function activityFor(
 // 주간 현황 집계 — 링고/뉴로 각각 계산한다 (다른 상품이므로 합산 금지)
 export interface ProductWeekly {
   newLeads: Lead[]; // 이번 주 유입
-  contracts: Lead[]; // 이번 주 계약 (계약일 기준)
-  mrr: number; // 이번 주 계약의 월 반복매출
+  contracts: Lead[]; // 이번 주 신규 계약 (업셀 제외)
+  upsells: Lead[]; // 이번 주 기존 고객 부가서비스 업셀
+  mrr: number; // 이번 주 계약+업셀의 월 반복매출 (둘 다 매출이므로 포함)
   oneOff: number; // 이번 주 계약의 일회성 매출(세팅비)
 }
 
 export function productWeekly(leads: Lead[], w: WeekRange, product: Product): ProductWeekly {
   const P = leads.filter((l) => l.product === product);
   const newLeads = P.filter((l) => inWeek(l.firstInquiry, w));
-  const contracts = P.filter((l) => l.status === "계약" && inWeek(l.contractDate, w));
+  const closed = P.filter((l) => l.status === "계약" && inWeek(l.contractDate, w));
+  const contracts = closed.filter((l) => !l.isUpsell); // 신규 계약만
+  const upsells = closed.filter((l) => l.isUpsell); // 업셀 별도
   return {
     newLeads,
     contracts,
-    mrr: contracts.reduce((s, l) => s + (l.monthlyFee ?? 0), 0),
+    upsells,
+    mrr: closed.reduce((s, l) => s + (l.monthlyFee ?? 0), 0), // 신규+업셀 모두 MRR
     oneOff: contracts.reduce((s, l) => s + (l.setupFee ?? 0), 0),
   };
 }
@@ -72,13 +76,16 @@ export function buildWeeklyCopyText(
     const prev = productWeekly(data.leads, prevW, p);
     lines.push(`■ ${p}`);
     lines.push(
-      `- 신규 리드 ${cur.newLeads.length}건 (전주 ${prev.newLeads.length}건) · 계약 ${cur.contracts.length}건 · 신규 MRR ${fmtWon(cur.mrr)}${cur.oneOff > 0 ? ` + 일회성 ${fmtWon(cur.oneOff)}` : ""}`,
+      `- 신규 리드 ${cur.newLeads.length}건 (전주 ${prev.newLeads.length}건) · 신규 계약 ${cur.contracts.length}건${cur.upsells.length > 0 ? ` · 업셀 ${cur.upsells.length}건` : ""} · 신규 MRR ${fmtWon(cur.mrr)}${cur.oneOff > 0 ? ` + 일회성 ${fmtWon(cur.oneOff)}` : ""}`,
     );
     if (cur.newLeads.length > 0) {
       lines.push(`- 신규: ${cur.newLeads.map((l) => `${l.name}(${l.source})`).join(", ")}`);
     }
     if (cur.contracts.length > 0) {
-      lines.push(`- 계약: ${cur.contracts.map((l) => l.name).join(", ")}`);
+      lines.push(`- 신규 계약: ${cur.contracts.map((l) => l.name).join(", ")}`);
+    }
+    if (cur.upsells.length > 0) {
+      lines.push(`- 업셀: ${cur.upsells.map((l) => l.name).join(", ")}`);
     }
     for (const a of adStatsFor(data, w.start, p)) {
       const label = a.source === "메타광고" ? "메타" : "네이버";

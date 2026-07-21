@@ -64,6 +64,7 @@ export interface Lead {
   setupFee?: number; // 초기 세팅비 등 일회성 매출
   firstInquiry: string; // YYYY-MM-DD (유입일 — 코호트 기준)
   contractDate?: string; // 계약일 (당월 계약 집계 기준)
+  isUpsell?: boolean; // 기존 고객 부가서비스 업셀 — 신규 계약 건수에서는 제외, MRR엔 포함
   nextContact?: string; // 다음 액션 예정일
   nextAction?: string; // 다음 액션 내용 (예: 견적 리마인드 전화)
   dealProbability?: DealProbability; // 계약 가능성

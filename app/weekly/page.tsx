@@ -191,6 +191,9 @@ export default function WeeklyPage() {
               {cpl !== null && <span className="text-zinc-300"> (CPL {fmtWon(cpl)})</span>} · 신규
               리드 {wk.newLeads.length}건 · 계약 {wk.contracts.length}건
               <span className="text-zinc-400"> (월 누적 {monthDeals}건)</span>
+              {wk.upsells.length > 0 && (
+                <span className="text-zinc-400"> · 업셀 {wk.upsells.length}건</span>
+              )}
               {wk.mrr > 0 && <span> · 신규 MRR {fmtWon(wk.mrr)}</span>}
             </p>
           );
@@ -339,11 +342,11 @@ export default function WeeklyPage() {
                 </table>
               )}
 
-              {/* 이번 주 계약 목록 */}
-              <p className="mb-1.5 text-xs font-semibold text-emerald-700">이번 주 계약</p>
+              {/* 이번 주 신규 계약 목록 */}
+              <p className="mb-1.5 text-xs font-semibold text-emerald-700">이번 주 신규 계약</p>
               {cur.contracts.length === 0 ? (
                 <p className="rounded-lg bg-zinc-50 py-2.5 text-center text-xs text-zinc-400">
-                  이번 주 계약 없음
+                  이번 주 신규 계약 없음
                 </p>
               ) : (
                 <ul className="space-y-1 text-sm">
@@ -357,6 +360,26 @@ export default function WeeklyPage() {
                     </li>
                   ))}
                 </ul>
+              )}
+
+              {/* 기존 고객 부가서비스 업셀 — 신규 계약과 분리 표기 */}
+              {cur.upsells.length > 0 && (
+                <>
+                  <p className="mb-1.5 mt-3 text-xs font-semibold text-zinc-500">
+                    부가서비스 업셀 (기존 고객)
+                  </p>
+                  <ul className="space-y-1 text-sm">
+                    {cur.upsells.map((l) => (
+                      <li key={l.id} className="flex items-center gap-2">
+                        <span className="font-medium">{l.name}</span>
+                        <span className="text-xs text-zinc-500">
+                          {l.source} · {l.contractDate}
+                          {l.monthlyFee ? ` · 월 ${fmtWon(l.monthlyFee)}` : ""}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
               )}
 
               <ActivityEditor

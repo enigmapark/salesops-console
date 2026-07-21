@@ -9,9 +9,14 @@ export function contractMonthOf(lead: Lead): string {
   return (lead.contractDate ?? lead.firstInquiry).slice(0, 7);
 }
 
-// 해당 월에 "계약된" 리드 (유입 시점 무관)
+// 해당 월에 "계약된" 리드 (유입 시점 무관, 업셀 제외 — 신규 계약 건수)
 export function contractsInMonth(leads: Lead[], month: string): Lead[] {
-  return leads.filter((l) => l.status === "계약" && contractMonthOf(l) === month);
+  return leads.filter((l) => l.status === "계약" && !l.isUpsell && contractMonthOf(l) === month);
+}
+
+// 해당 월 업셀(부가서비스) 건
+export function upsellsInMonth(leads: Lead[], month: string): Lead[] {
+  return leads.filter((l) => l.status === "계약" && l.isUpsell && contractMonthOf(l) === month);
 }
 
 // 해당 월에 "유입된" 리드 (코호트)
@@ -19,9 +24,11 @@ export function inflowInMonth(leads: Lead[], month: string): Lead[] {
   return leads.filter((l) => l.firstInquiry.startsWith(month));
 }
 
-// 신규 MRR: 해당 월 계약 고객의 월 이용료 합
+// 신규 MRR: 해당 월 계약+업셀 고객의 월 이용료 합 (업셀도 반복매출이므로 포함)
 export function newMrrInMonth(leads: Lead[], month: string): number {
-  return contractsInMonth(leads, month).reduce((s, l) => s + (l.monthlyFee ?? 0), 0);
+  return leads
+    .filter((l) => l.status === "계약" && contractMonthOf(l) === month)
+    .reduce((s, l) => s + (l.monthlyFee ?? 0), 0);
 }
 
 // 일회성 매출: 해당 월 계약 고객의 세팅비 합
