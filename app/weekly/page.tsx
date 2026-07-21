@@ -250,6 +250,7 @@ export default function WeeklyPage() {
                   label="신규 MRR"
                   value={cur.mrr > 0 ? fmtWon(cur.mrr) : "0원"}
                   sub={cur.oneOff > 0 ? `일회성 ${fmtWon(cur.oneOff)} 별도` : "이번 주 계약분"}
+                  small
                 />
                 {/* 진행 파이프라인 — 링고만 표시 (뉴로는 제외) */}
                 {p === "링고" && (

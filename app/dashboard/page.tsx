@@ -156,6 +156,7 @@ export default function DashboardPage() {
                   label="신규 MRR"
                   value={e.mrr > 0 ? fmtWon(e.mrr) : "0원"}
                   sub={e.oneOff > 0 ? `일회성 ${fmtWon(e.oneOff)} 별도` : "계약 고객 월 이용료"}
+                  small
                 />
                 <KpiCard
                   label="진행 파이프라인"
