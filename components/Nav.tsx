@@ -11,6 +11,7 @@ const LINKS = [
   { href: "/weekly", label: "주간 현황" },
   { href: "/report", label: "월간 보고" },
   { href: "/threads", label: "무료 채널 게시" },
+  { href: "/insights", label: "영업 기회" },
 ];
 
 export function Nav() {

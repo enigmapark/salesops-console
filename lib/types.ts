@@ -151,6 +151,17 @@ export interface WeeklyNote {
   text: string;
 }
 
+// 영업 기회 · 타겟 아이디어 (시장 신호 → 실행할 영업 아이디어 백로그)
+export type InsightStatus = "발굴" | "진행중" | "완료" | "보류";
+export interface SalesInsight {
+  id: string;
+  date: string; // 발견일 YYYY-MM-DD
+  product: ProductScope; // 링고/뉴로/공통
+  title: string; // 무엇을 발견했나
+  action: string; // 무엇을 할까
+  status: InsightStatus;
+}
+
 // localStorage에 통째로 저장하는 앱 데이터 묶음
 export interface AppData {
   leads: Lead[];
@@ -160,4 +171,5 @@ export interface AppData {
   weeklyActivities: WeeklyActivity[];
   weeklyAdStats: WeeklyAdStat[];
   weeklyNotes: WeeklyNote[];
+  salesInsights: SalesInsight[];
 }
