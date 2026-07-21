@@ -109,7 +109,7 @@ export function buildWeeklyCopyText(
     }
   }
   const t = threadsWeekly(data, w);
-  lines.push("■ 스레드(공통)");
+  lines.push("■ 무료 채널 게시");
   lines.push(
     `- 게시 ${t.postCount}건 · 노출 ${fmtNum(t.totalImpressions)} · 반응률 ${fmtPct(t.avgEngagementRate)} · 유입 리드 ${t.totalLeads}건`,
   );

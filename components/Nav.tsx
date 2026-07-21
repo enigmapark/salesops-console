@@ -10,7 +10,7 @@ const LINKS = [
   { href: "/channels", label: "채널" },
   { href: "/weekly", label: "주간 현황" },
   { href: "/report", label: "월간 보고" },
-  { href: "/threads", label: "스레드(SNS)" },
+  { href: "/threads", label: "무료 채널 게시" },
 ];
 
 export function Nav() {

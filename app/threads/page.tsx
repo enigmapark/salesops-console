@@ -62,9 +62,9 @@ export default function ThreadsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
         <div>
-          <h1 className="text-xl font-bold">스레드 운영</h1>
+          <h1 className="text-xl font-bold">무료 채널 게시</h1>
           <p className="text-xs text-zinc-500">
-            게시글 로그·반응·유입 리드 · 스레드는 채널 퍼널의 &ldquo;스레드&rdquo; 소스와 연결됩니다
+            카페·커뮤니티·SNS 등 무료 채널 게시글 로그 · 게시별 유입 리드(문의) 집계
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">

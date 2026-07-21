@@ -399,12 +399,12 @@ export default function WeeklyPage() {
         })}
       </div>
 
-      {/* 스레드(공통) 주간 */}
+      {/* 무료 채널 게시 주간 */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <KpiCard label="스레드 게시 (공통)" value={fmtNum(threads.postCount)} sub={week.label} />
-        <KpiCard label="스레드 노출" value={fmtNum(threads.totalImpressions)} />
-        <KpiCard label="스레드 반응률" value={fmtPct(threads.avgEngagementRate)} />
-        <KpiCard label="스레드 유입 리드" value={fmtNum(threads.totalLeads)} />
+        <KpiCard label="무료 채널 게시 수" value={fmtNum(threads.postCount)} sub={week.label} />
+        <KpiCard label="게시 노출" value={fmtNum(threads.totalImpressions)} />
+        <KpiCard label="평균 반응률" value={fmtPct(threads.avgEngagementRate)} />
+        <KpiCard label="게시 유입 리드" value={fmtNum(threads.totalLeads)} />
       </div>
 
       {/* 경쟁사 리드 현황 */}

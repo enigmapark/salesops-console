@@ -416,7 +416,7 @@ export default function DashboardPage() {
           sub={bestFree ? `계약전환율 ${fmtPct(dealRate(bestFree))}` : "데이터 없음"}
         />
         <KpiCard
-          label="이번 달 스레드 유입"
+          label="이번 달 무료 채널 게시 유입"
           value={fmtNum(threadLeads)}
           sub={`${thisMonth} · 게시 ${monthPosts.length}건`}
         />

@@ -424,7 +424,7 @@ export default function ReportPage() {
               />
             </div>
             <div>
-              <label className={labelCls}>스레드 코멘트 (선택)</label>
+              <label className={labelCls}>무료 채널 게시 코멘트 (선택)</label>
               <textarea
                 rows={2}
                 className={inputCls}
