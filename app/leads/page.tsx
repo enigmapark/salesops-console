@@ -129,7 +129,10 @@ export default function LeadsPage() {
       return (
       <div key={product} className="mb-6">
         <h2 className="mb-2 text-sm font-semibold">
-          {product} 리드 <span className="font-normal text-zinc-400">({rows.length}건)</span>
+          {product} 리드{" "}
+          <span className="font-normal text-zinc-400">
+            (전체 {rows.length}건 · 과거 유입 계약 고객 포함)
+          </span>
         </h2>
         <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white">
         <table className="w-full min-w-[900px] text-sm">
