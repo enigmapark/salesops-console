@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { KpiCard } from "@/components/KpiCard";
-import { contractsInMonth, pipelineValue } from "@/lib/exec";
+import { contractsInMonth, newMrrInMonth, pipelineValue } from "@/lib/exec";
 import { fmtNum, fmtPct, fmtWon } from "@/lib/format";
 import { buildInsights } from "@/lib/report";
 import { getToday } from "@/lib/today";
@@ -179,10 +179,10 @@ export default function WeeklyPage() {
           const spend = stats.reduce((s, a) => s + a.spend, 0);
           const inq = stats.reduce((s, a) => s + a.inquiries, 0);
           const wk = productWeekly(data.leads, week, p);
-          const monthDeals = contractsInMonth(
-            data.leads.filter((l) => l.product === p),
-            week.start.slice(0, 7),
-          ).length;
+          const pLeads = data.leads.filter((l) => l.product === p);
+          const month = week.start.slice(0, 7);
+          const monthDeals = contractsInMonth(pLeads, month).length;
+          const monthMrr = newMrrInMonth(pLeads, month); // 이번 달 누적 MRR
           const cpl = inq > 0 ? spend / inq : null;
           return (
             <p key={p} className="mt-2 text-sm leading-relaxed">
@@ -194,7 +194,11 @@ export default function WeeklyPage() {
               {wk.upsells.length > 0 && (
                 <span className="text-zinc-400"> · 업셀 {wk.upsells.length}건</span>
               )}
-              {wk.mrr > 0 && <span> · 신규 MRR {fmtWon(wk.mrr)}</span>}
+              <br />
+              <span className="text-zinc-300">
+                └ 신규 MRR {fmtWon(wk.mrr)} · {parseInt(month.slice(5), 10)}월 누적 MRR{" "}
+                <span className="font-semibold text-white">{fmtWon(monthMrr)}</span>
+              </span>
             </p>
           );
         })}
