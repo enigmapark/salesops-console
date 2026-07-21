@@ -230,7 +230,9 @@ export default function WeeklyPage() {
               <h2 className="mb-3 text-sm font-semibold">
                 {p} <span className="text-xs font-normal text-zinc-400">{week.label}</span>
               </h2>
-              <div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div
+                className={`mb-3 grid grid-cols-2 gap-3 ${p === "뉴로" ? "sm:grid-cols-3" : "sm:grid-cols-4"}`}
+              >
                 <KpiCard
                   label="신규 리드"
                   value={`${fmtNum(cur.newLeads.length)}건`}
@@ -246,12 +248,15 @@ export default function WeeklyPage() {
                   value={cur.mrr > 0 ? fmtWon(cur.mrr) : "0원"}
                   sub={cur.oneOff > 0 ? `일회성 ${fmtWon(cur.oneOff)} 별도` : "이번 주 계약분"}
                 />
-                <KpiCard
-                  label="진행 파이프라인"
-                  value={pipe.amount > 0 ? fmtWon(pipe.amount) : "–"}
-                  sub={`현재 활성 ${pipe.count}건`}
-                  small
-                />
+                {/* 진행 파이프라인 — 링고만 표시 (뉴로는 제외) */}
+                {p === "링고" && (
+                  <KpiCard
+                    label="진행 파이프라인"
+                    value={pipe.amount > 0 ? fmtWon(pipe.amount) : "–"}
+                    sub={`현재 활성 ${pipe.count}건`}
+                    small
+                  />
+                )}
               </div>
 
               {/* 주간 광고 성과 (매체별) */}
