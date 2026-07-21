@@ -40,13 +40,19 @@ export default function LeadsPage() {
   const leadsBy = (p: Product) => sortByScoreDesc(filtered.filter((l) => l.product === p));
   const contactCount = data.leads.filter((l) => needsContact(l, today)).length;
 
-  // 상단 요약 — 링고/뉴로 구분 집계
+  // 상단 요약 — 이번 달(유입 기준) 신규 리드. 과거 유입 계약 고객은 제외.
+  const month = today.slice(0, 7);
   const summaryBy = (p: Product) => {
     const rows = data.leads.filter((l) => l.product === p);
-    return { total: rows.length, deals: rows.filter((l) => l.status === "계약").length };
+    const inflow = rows.filter((l) => l.firstInquiry.startsWith(month)).length;
+    const deals = rows.filter(
+      (l) => l.status === "계약" && !l.isUpsell && (l.contractDate ?? l.firstInquiry).startsWith(month),
+    ).length;
+    return { inflow, deals };
   };
   const lingoSum = summaryBy("링고");
   const neuroSum = summaryBy("뉴로");
+  const monthLabel = `${parseInt(month.slice(5), 10)}월`;
 
   const saveLead = (lead: Lead) =>
     update((d) => {
@@ -101,12 +107,20 @@ export default function LeadsPage() {
 
       <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
         <KpiCard
-          label="전체 리드"
-          value={fmtNum(data.leads.length)}
-          sub={`계약 ${lingoSum.deals + neuroSum.deals}건`}
+          label={`${monthLabel} 신규 리드`}
+          value={fmtNum(lingoSum.inflow + neuroSum.inflow)}
+          sub={`이번 달 계약 ${lingoSum.deals + neuroSum.deals}건`}
         />
-        <KpiCard label="링고 리드" value={fmtNum(lingoSum.total)} sub={`계약 ${lingoSum.deals}건`} />
-        <KpiCard label="뉴로 리드" value={fmtNum(neuroSum.total)} sub={`계약 ${neuroSum.deals}건`} />
+        <KpiCard
+          label={`링고 · ${monthLabel} 신규`}
+          value={fmtNum(lingoSum.inflow)}
+          sub={`이번 달 계약 ${lingoSum.deals}건`}
+        />
+        <KpiCard
+          label={`뉴로 · ${monthLabel} 신규`}
+          value={fmtNum(neuroSum.inflow)}
+          sub={`이번 달 계약 ${neuroSum.deals}건`}
+        />
         <KpiCard label="연락 요망" value={fmtNum(contactCount)} sub="다음 연락일이 오늘이거나 지남" />
       </div>
 
