@@ -40,7 +40,7 @@ function WeeklyNoteEditor({
   return (
     <section className="rounded-xl border border-zinc-200 bg-white p-4">
       <div className="mb-2 flex items-center justify-between">
-        <h2 className="text-sm font-semibold">이번 주 코멘트 (대표 보고용 해석·다음 액션)</h2>
+        <h2 className="text-sm font-semibold">이번 주 코멘트</h2>
         <button
           onClick={() => {
             onSave(text);
