@@ -56,6 +56,32 @@ export function freshSeed(): AppData {
   return deepClone(seedData);
 }
 
+// 저장소(로컬/원격)에서 읽은 임의 JSON을 완전한 AppData로 정규화한다.
+// 누락 필드 보강 + 옛 채널 제품 복원 등. Supabase·localStorage 공통 사용.
+export function normalizeAppData(parsed: Partial<AppData> | null | undefined): AppData {
+  const p = parsed ?? {};
+  return {
+    leads: (p.leads ?? []).map((l) => ({ ...l, status: migrateLeadStatus(l.status) })),
+    funnels: (p.funnels ?? []).map((f) => ({ ...f, product: inferFunnelProduct(f) })),
+    threadPosts: p.threadPosts ?? [],
+    reportComments: p.reportComments ?? [],
+    weeklyActivities: p.weeklyActivities ?? [],
+    weeklyAdStats: p.weeklyAdStats ?? [],
+    weeklyNotes: p.weeklyNotes ?? [],
+    salesInsights: p.salesInsights ?? [],
+  };
+}
+
+// 원격 데이터가 비어 있는지(실데이터 없음) 판단 — 첫 접속 시 seed 채우기용
+export function isEmptyAppData(d: AppData): boolean {
+  return (
+    d.leads.length === 0 &&
+    d.funnels.length === 0 &&
+    d.threadPosts.length === 0 &&
+    d.salesInsights.length === 0
+  );
+}
+
 export function loadAppData(): AppData {
   if (typeof window === "undefined") return freshSeed();
   try {

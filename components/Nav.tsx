@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { resetAppData } from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
 
 const LINKS = [
   { href: "/dashboard", label: "대시보드" },
@@ -17,11 +17,9 @@ const LINKS = [
 export function Nav() {
   const pathname = usePathname();
 
-  const handleReset = () => {
-    if (window.confirm("입력한 데이터를 모두 지우고 처음의 예시 데이터로 되돌릴까요?")) {
-      resetAppData();
-      window.location.reload();
-    }
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    window.location.reload();
   };
 
   return (
@@ -47,10 +45,10 @@ export function Nav() {
           })}
         </nav>
         <button
-          onClick={handleReset}
+          onClick={handleLogout}
           className="ml-auto rounded-md border border-zinc-300 px-3 py-1.5 text-xs text-zinc-600 hover:bg-zinc-100"
         >
-          예시 데이터로 초기화
+          로그아웃
         </button>
       </div>
     </header>

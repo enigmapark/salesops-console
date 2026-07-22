@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { AuthGate } from "@/components/AuthGate";
 import { Nav } from "@/components/Nav";
 
 const geistSans = Geist({
@@ -26,8 +27,10 @@ export default function RootLayout({
   return (
     <html lang="ko" className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
       <body className="min-h-screen">
-        <Nav />
-        <main className="mx-auto max-w-6xl px-4 py-6">{children}</main>
+        <AuthGate>
+          <Nav />
+          <main className="mx-auto max-w-6xl px-4 py-6">{children}</main>
+        </AuthGate>
       </body>
     </html>
   );
