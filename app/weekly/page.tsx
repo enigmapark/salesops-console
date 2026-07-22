@@ -133,7 +133,8 @@ function ActivityEditor({
 export default function WeeklyPage() {
   const { data, update } = useAppData();
   const today = getToday();
-  const [weekStart, setWeekStart] = useState<string>(() => weekOf(getToday()).start);
+  // null이면 "데이터가 있는 최근 주"를 기본으로 보여준다 (사용자가 고르면 그 값 사용)
+  const [weekStart, setWeekStart] = useState<string | null>(null);
   const [copyText, setCopyText] = useState("");
   const [copied, setCopied] = useState(false);
 
@@ -147,9 +148,28 @@ export default function WeeklyPage() {
     return listWeeks(dates, today);
   }, [data, today]);
 
+  // 기본 표시 주: 오늘 주에 데이터가 있으면 오늘 주, 없으면 데이터가 있는 가장 최근 주
+  // (수요일 아침에 새 주가 막 시작돼 비어 있으면, 방금 끝난 보고 대상 주를 보여준다)
+  const defaultWeekStart = useMemo(() => {
+    const todayStart = weekOf(today).start;
+    if (!data) return todayStart;
+    const dataDates = [
+      ...data.leads.map((l) => l.firstInquiry),
+      ...data.leads.flatMap((l) => (l.contractDate ? [l.contractDate] : [])),
+      ...(data.weeklyAdStats ?? []).map((a) => a.weekStart),
+      ...(data.weeklyActivities ?? []).map((a) => a.weekStart),
+      ...data.threadPosts.map((p) => p.date),
+    ].filter(Boolean);
+    const hasToday = dataDates.some((dt) => weekOf(dt).start === todayStart);
+    if (hasToday) return todayStart;
+    const recent = weeks.find((w) => w.start !== todayStart);
+    return recent?.start ?? todayStart;
+  }, [data, today, weeks]);
+
   if (!data) return <p className="py-16 text-center text-sm text-zinc-400">불러오는 중…</p>;
 
-  const week: WeekRange = weeks.find((w) => w.start === weekStart) ?? weekOf(today);
+  const activeStart = weekStart ?? defaultWeekStart;
+  const week: WeekRange = weeks.find((w) => w.start === activeStart) ?? weekOf(today);
   const prevWeek = prevWeekOf(week);
   const insights = buildInsights(data, today.slice(0, 7), today);
   const threads = threadsWeekly(data, week);
