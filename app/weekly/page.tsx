@@ -23,7 +23,34 @@ import type { AppData, Product, WeeklyActivity } from "@/lib/types";
 const selectCls =
   "rounded-md border border-zinc-300 bg-white px-2.5 py-1.5 text-sm focus:border-zinc-500 focus:outline-none";
 
-// 주간 코멘트 (대표 보고용 해석·계획)
+// 코멘트 한 줄을 [라벨] 본문 형태로 파싱해 보고서처럼 렌더링
+function NoteLine({ line }: { line: string }) {
+  if (!line.trim()) return <div className="h-2" />;
+  const m = line.match(/^\[([^\]]+)\]\s*(.*)$/);
+  if (m) {
+    const label = m[1];
+    const color = label.includes("링고")
+      ? "border-indigo-200 bg-indigo-50 text-indigo-700"
+      : label.includes("뉴로")
+        ? "border-amber-200 bg-amber-50 text-amber-700"
+        : label.includes("리스크")
+          ? "border-rose-200 bg-rose-50 text-rose-700"
+          : "border-zinc-200 bg-zinc-100 text-zinc-600";
+    return (
+      <div className="flex gap-2">
+        <span
+          className={`mt-0.5 h-fit whitespace-nowrap rounded-full border px-2 py-0.5 text-xs font-semibold ${color}`}
+        >
+          {label}
+        </span>
+        <span className="text-sm leading-relaxed text-zinc-700">{m[2]}</span>
+      </div>
+    );
+  }
+  return <p className="text-sm leading-relaxed text-zinc-700">{line}</p>;
+}
+
+// 주간 코멘트 — 평소엔 보고서 형태로 읽고, 편집 버튼으로 수정
 function WeeklyNoteEditor({
   initial,
   onSave,
@@ -32,33 +59,66 @@ function WeeklyNoteEditor({
   onSave: (text: string) => void;
 }) {
   const [text, setText] = useState(initial);
-  const [saved, setSaved] = useState(false);
-  // 저장된 코멘트가 나중에 로드되면(초기엔 빈 seed) 입력칸에 반영
+  const [editing, setEditing] = useState(false);
   useEffect(() => {
     setText(initial);
   }, [initial]);
+
   return (
-    <section className="rounded-xl border border-zinc-200 bg-white p-4">
-      <div className="mb-2 flex items-center justify-between">
+    <section className="rounded-xl border border-zinc-200 bg-white p-5">
+      <div className="mb-3 flex items-center justify-between">
         <h2 className="text-sm font-semibold">이번 주 코멘트</h2>
-        <button
-          onClick={() => {
-            onSave(text);
-            setSaved(true);
-            setTimeout(() => setSaved(false), 1500);
-          }}
-          className="rounded-md bg-zinc-900 px-3 py-1 text-xs font-medium text-white hover:bg-zinc-700"
-        >
-          {saved ? "✓ 저장됨" : "저장"}
-        </button>
+        {editing ? (
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                setText(initial);
+                setEditing(false);
+              }}
+              className="rounded-md border border-zinc-300 px-3 py-1 text-xs hover:bg-zinc-50"
+            >
+              취소
+            </button>
+            <button
+              onClick={() => {
+                onSave(text);
+                setEditing(false);
+              }}
+              className="rounded-md bg-zinc-900 px-3 py-1 text-xs font-medium text-white hover:bg-zinc-700"
+            >
+              저장
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setEditing(true)}
+            className="rounded-md border border-zinc-300 px-3 py-1 text-xs text-zinc-600 hover:bg-zinc-50"
+          >
+            편집
+          </button>
+        )}
       </div>
-      <textarea
-        rows={4}
-        className="w-full rounded-md border border-zinc-300 bg-white px-2.5 py-1.5 text-sm focus:border-zinc-500 focus:outline-none"
-        placeholder="이번 주 숫자에 대한 해석과 다음 액션을 적으세요. (복사용 텍스트에도 포함됩니다)"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-      />
+
+      {editing ? (
+        <textarea
+          rows={12}
+          autoFocus
+          className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm leading-relaxed focus:border-zinc-500 focus:outline-none"
+          placeholder="이번 주 숫자에 대한 해석과 다음 액션을 적으세요.&#10;줄 앞에 [링고] [뉴로] [공통·리스크] 를 붙이면 보고서 형태로 정리됩니다.&#10;(복사용 텍스트에도 포함됩니다)"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
+      ) : text.trim() ? (
+        <div className="space-y-2">
+          {text.split("\n").map((line, i) => (
+            <NoteLine key={i} line={line} />
+          ))}
+        </div>
+      ) : (
+        <p className="py-3 text-center text-sm text-zinc-400">
+          아직 코멘트가 없습니다 — &ldquo;편집&rdquo;을 눌러 작성하세요.
+        </p>
+      )}
     </section>
   );
 }
