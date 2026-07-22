@@ -56,29 +56,34 @@ export default function DashboardPage() {
 
   const funnels = sortByDealRateDesc(data.funnels);
 
-  // 제품별 리드·계약 현황 (링고 / 뉴로 / 합계)
+  // 제품별 이번 달 현황 (링고 / 뉴로 / 합계) — 유입·계약 모두 이번 달 기준
+  // 계약은 계약일 기준·업셀 제외(신규 계약만). 리드는 이번 달 유입 코호트.
   const productRows = (["링고", "뉴로"] as const).map((p) => {
     const rows = data.leads.filter((l) => l.product === p);
-    const deals = rows.filter((l) => l.status === "계약");
+    const inflow = inflowInMonth(rows, thisMonth);
+    const monthDeals = contractsInMonth(rows, thisMonth); // 업셀 제외·이번 달
     return {
       name: p as string,
-      leads: rows.length,
+      leads: inflow.length,
       active: rows.filter((l) => {
         const g = calcGrade(l);
         return g === "1등급" || g === "2등급";
       }).length,
-      deals: deals.length,
-      amount: deals.reduce((s, l) => s + l.expectedAmount, 0),
-      rate: safeDiv(deals.length, rows.length),
+      deals: monthDeals.length,
+      amount: monthDeals.reduce((s, l) => s + l.expectedAmount, 0),
+      rate: safeDiv(monthDeals.length, inflow.length),
     };
   });
   const totalRow = {
     name: "합계",
-    leads: totalLeads,
+    leads: productRows.reduce((s, r) => s + r.leads, 0),
     active: activeTop,
-    deals: dealLeads,
-    amount: dealAmount,
-    rate: conversionRate,
+    deals: productRows.reduce((s, r) => s + r.deals, 0),
+    amount: productRows.reduce((s, r) => s + r.amount, 0),
+    rate: safeDiv(
+      productRows.reduce((s, r) => s + r.deals, 0),
+      productRows.reduce((s, r) => s + r.leads, 0),
+    ),
   };
 
   // 오늘의 액션 + 세일즈 퍼널
@@ -224,7 +229,15 @@ export default function DashboardPage() {
 
       {/* 제품별 리드·계약 현황 — 링고/뉴로 분리 + 합계 */}
       <section className="rounded-xl border border-zinc-200 bg-white p-4">
-        <h2 className="mb-3 text-sm font-semibold">제품별 리드·계약 현황</h2>
+        <h2 className="mb-1 text-sm font-semibold">
+          제품별 이번 달 현황
+          <span className="ml-1.5 text-xs font-normal text-zinc-400">
+            {thisMonth} · 신규 계약만(업셀 제외)
+          </span>
+        </h2>
+        <p className="mb-3 text-[11px] text-zinc-400">
+          리드·계약 모두 이번 달 기준 · 계약은 계약일 기준(과거 유입 포함, 업셀 제외)
+        </p>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[560px] text-sm">
             <thead>
