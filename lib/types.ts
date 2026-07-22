@@ -96,7 +96,14 @@ export interface ChannelFunnel {
   adClicks?: number; // 광고 클릭
 }
 
-export type ThreadTopic = "신문사" | "SEO" | "AI" | "마케팅" | "기타";
+export type ThreadTopic =
+  | "언론사 창업"
+  | "신문사"
+  | "SEO"
+  | "AI 마케팅"
+  | "AI"
+  | "마케팅"
+  | "기타";
 
 export interface ThreadPost {
   id: string;
