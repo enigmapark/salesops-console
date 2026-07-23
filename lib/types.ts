@@ -158,6 +158,15 @@ export interface WeeklyNote {
   text: string;
 }
 
+// 주간 경쟁사 문의 현황 (경쟁사에 들어온 문의 수 — 시장 규모 벤치마크, 링고용)
+export interface WeeklyCompetitorStat {
+  id: string; // `${weekStart}:${competitor}`
+  weekStart: string; // 해당 주 수요일 (YYYY-MM-DD)
+  competitor: string; // 엔디소프트, 다다미디어 등
+  inquiries: number; // 해당 주 문의 수
+  note?: string;
+}
+
 // 영업 기회 · 타겟 아이디어 (시장 신호 → 실행할 영업 아이디어 백로그)
 export type InsightStatus = "발굴" | "진행중" | "완료" | "보류";
 export interface SalesInsight {
@@ -179,4 +188,5 @@ export interface AppData {
   weeklyAdStats: WeeklyAdStat[];
   weeklyNotes: WeeklyNote[];
   salesInsights: SalesInsight[];
+  weeklyCompetitorStats: WeeklyCompetitorStat[];
 }

@@ -42,6 +42,7 @@ function migrateV1(parsed: Partial<AppData>): AppData {
     weeklyAdStats: parsed.weeklyAdStats ?? [],
     weeklyNotes: parsed.weeklyNotes ?? [],
     salesInsights: parsed.salesInsights ?? [],
+    weeklyCompetitorStats: parsed.weeklyCompetitorStats ?? [],
   };
 }
 
@@ -99,6 +100,7 @@ export function loadAppData(): AppData {
         weeklyAdStats: parsed.weeklyAdStats ?? [],
         weeklyNotes: parsed.weeklyNotes ?? [],
         salesInsights: parsed.salesInsights ?? [],
+        weeklyCompetitorStats: parsed.weeklyCompetitorStats ?? [],
       };
       if (needFix) saveAppData(result);
       return result;

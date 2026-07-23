@@ -18,7 +18,7 @@ import {
   productWeekly,
   threadsWeekly,
 } from "@/lib/weekly";
-import type { AppData, Product, WeeklyActivity } from "@/lib/types";
+import type { AppData, Product, WeeklyActivity, WeeklyCompetitorStat } from "@/lib/types";
 
 const selectCls =
   "rounded-md border border-zinc-300 bg-white px-2.5 py-1.5 text-sm focus:border-zinc-500 focus:outline-none";
@@ -190,6 +190,78 @@ function ActivityEditor({
   );
 }
 
+// 링고 경쟁사 문의 현황 (시장 벤치마크) — 확인 가능한 경쟁사만
+const LINGO_COMPETITORS = ["엔디소프트", "다다미디어"];
+
+function CompetitorEditor({
+  week,
+  stats,
+  onSave,
+}: {
+  week: WeekRange;
+  stats: WeeklyCompetitorStat[];
+  onSave: (rows: WeeklyCompetitorStat[]) => void;
+}) {
+  const initial = LINGO_COMPETITORS.map(
+    (c) => stats.find((s) => s.competitor === c)?.inquiries ?? 0,
+  );
+  const [vals, setVals] = useState<number[]>(initial);
+  const [saved, setSaved] = useState(false);
+  useEffect(() => {
+    setVals(LINGO_COMPETITORS.map((c) => stats.find((s) => s.competitor === c)?.inquiries ?? 0));
+  }, [stats]);
+  const inputCls =
+    "w-full rounded-md border border-zinc-300 bg-white px-2 py-1 text-sm focus:border-zinc-500 focus:outline-none";
+  return (
+    <div className="mt-3 rounded-lg border border-zinc-100 bg-zinc-50 p-3">
+      <p className="mb-2 text-xs font-semibold text-zinc-500">
+        경쟁사 문의 현황 · {week.label}{" "}
+        <span className="font-normal text-zinc-400">(문의 수 확인 가능한 곳만)</span>
+      </p>
+      <div className="grid grid-cols-2 gap-2">
+        {LINGO_COMPETITORS.map((c, i) => (
+          <div key={c}>
+            <label className="mb-0.5 block text-[11px] text-zinc-500">{c}</label>
+            <input
+              type="number"
+              min={0}
+              className={inputCls}
+              value={vals[i]}
+              onChange={(e) => {
+                const next = [...vals];
+                next[i] = Math.max(0, Number(e.target.value) || 0);
+                setVals(next);
+              }}
+            />
+          </div>
+        ))}
+      </div>
+      <div className="mt-2 flex items-center justify-between">
+        <p className="text-[11px] text-zinc-400">
+          그 외 경쟁사는 CS만 운영해 문의 수 확인 불가
+        </p>
+        <button
+          onClick={() => {
+            onSave(
+              LINGO_COMPETITORS.map((c, i) => ({
+                id: `${week.start}:${c}`,
+                weekStart: week.start,
+                competitor: c,
+                inquiries: vals[i],
+              })),
+            );
+            setSaved(true);
+            setTimeout(() => setSaved(false), 1500);
+          }}
+          className="whitespace-nowrap rounded-md bg-zinc-900 px-3 py-1 text-xs font-medium text-white hover:bg-zinc-700"
+        >
+          {saved ? "✓ 저장됨" : "저장"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function WeeklyPage() {
   const { data, update } = useAppData();
   const today = getToday();
@@ -240,6 +312,15 @@ export default function WeeklyPage() {
       weeklyActivities: [
         ...(d.weeklyActivities ?? []).filter((x) => x.id !== a.id),
         a,
+      ],
+    }));
+
+  const saveCompetitorStats = (rows: WeeklyCompetitorStat[]) =>
+    update((d: AppData) => ({
+      ...d,
+      weeklyCompetitorStats: [
+        ...(d.weeklyCompetitorStats ?? []).filter((x) => x.weekStart !== week.start),
+        ...rows,
       ],
     }));
 
@@ -527,6 +608,18 @@ export default function WeeklyPage() {
                 existing={activityFor(data, week.start, p)}
                 onSave={saveActivity}
               />
+
+              {/* 경쟁사 문의 현황 — 링고 패널에만 */}
+              {p === "링고" && (
+                <CompetitorEditor
+                  key={`comp-${week.start}`}
+                  week={week}
+                  stats={(data.weeklyCompetitorStats ?? []).filter(
+                    (s) => s.weekStart === week.start,
+                  )}
+                  onSave={saveCompetitorStats}
+                />
+              )}
             </section>
           );
         })}

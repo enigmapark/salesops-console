@@ -108,6 +108,11 @@ export function buildWeeklyCopyText(
       lines.push(`- [${l.product}] ${l.name} — ${l.competitor}에서 이관 추진 중 (현재 ${l.status})`);
     }
   }
+  const compStats = (data.weeklyCompetitorStats ?? []).filter((s) => s.weekStart === w.start);
+  if (compStats.length > 0) {
+    lines.push("■ 경쟁사 문의 현황 (링고 · 시장 벤치마크)");
+    lines.push(`- ${compStats.map((s) => `${s.competitor} ${s.inquiries}건`).join(" · ")}`);
+  }
   const t = threadsWeekly(data, w);
   lines.push("■ 무료 채널 게시");
   lines.push(
