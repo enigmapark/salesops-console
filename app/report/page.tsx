@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { KpiCard } from "@/components/KpiCard";
 import { dealRate, isFreeChannel, safeDiv } from "@/lib/channel";
-import { contractsInMonth, newMrrInMonth } from "@/lib/exec";
+import { contractsInMonth, newMrrInMonth, upsellsInMonth } from "@/lib/exec";
 import { fmtNum, fmtPct, fmtWon } from "@/lib/format";
 import {
   availableMonths,
@@ -75,10 +75,13 @@ export default function ReportPage() {
     report.funnels.filter((f) => f.product === p).reduce((s, f) => s + f.spend, 0);
   const totalNewLeads = report.lingo.newLeads + report.neuro.newLeads;
 
-  // 당월 계약(계약일 기준) — 유입 월과 무관하게 이 달에 계약된 고객
+  // 당월 계약(계약일 기준) — 유입 월과 무관하게 이 달에 계약된 고객 (건수는 업셀 제외)
   const closedThisMonth = contractsInMonth(data.leads, month);
   const closedBy = (p: Product) => closedThisMonth.filter((l) => l.product === p);
-  const mrrBy = (p: Product) => closedBy(p).reduce((s, l) => s + (l.monthlyFee ?? 0), 0);
+  // MRR은 업셀도 반복매출이므로 신규 계약 + 업셀을 함께 합산 (총합 newMrrInMonth과 일치)
+  const mrrLeads = [...closedThisMonth, ...upsellsInMonth(data.leads, month)];
+  const mrrBy = (p: Product) =>
+    mrrLeads.filter((l) => l.product === p).reduce((s, l) => s + (l.monthlyFee ?? 0), 0);
   const totalNewMrr = newMrrInMonth(data.leads, month);
 
   const setField = (key: keyof ReportComment, value: string) =>
