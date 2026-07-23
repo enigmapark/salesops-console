@@ -13,6 +13,7 @@ import {
   adCpc,
   adCpl,
   adCtr,
+  AD_SOURCE_LABEL,
   adStatsFor,
   buildWeeklyCopyText,
   productWeekly,
@@ -593,9 +594,7 @@ export default function WeeklyPage() {
                         <tbody>
                           {stats.map((a) => (
                             <tr key={a.id} className="border-b border-zinc-100 last:border-0">
-                              <td className="py-1.5 font-medium">
-                                {a.source === "메타광고" ? "메타" : "네이버"}
-                              </td>
+                              <td className="py-1.5 font-medium">{AD_SOURCE_LABEL[a.source]}</td>
                               <td className="py-1.5 text-right font-semibold tabular-nums">
                                 {fmtWon(a.spend)}
                               </td>

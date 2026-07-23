@@ -145,7 +145,7 @@ export interface WeeklyAdStat {
   id: string; // `${weekStart}:${product}:${source}`
   weekStart: string; // 해당 주 수요일 (YYYY-MM-DD)
   product: Product;
-  source: "메타광고" | "네이버광고";
+  source: "메타광고" | "네이버광고" | "GPT광고" | "구글광고";
   spend: number;
   impressions: number;
   clicks: number;
