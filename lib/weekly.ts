@@ -78,6 +78,10 @@ export function buildWeeklyCopyText(
     lines.push(
       `- 신규 리드 ${cur.newLeads.length}건 (전주 ${prev.newLeads.length}건) · 신규 계약 ${cur.contracts.length}건${cur.upsells.length > 0 ? ` · 업셀 ${cur.upsells.length}건` : ""} · 신규 MRR ${fmtWon(cur.mrr)}${cur.oneOff > 0 ? ` + 일회성 ${fmtWon(cur.oneOff)}` : ""}`,
     );
+    const fc = (data.monthlyForecasts ?? []).find(
+      (f) => f.month === w.start.slice(0, 7) && f.product === p,
+    );
+    if (fc) lines.push(`- 이달 마감 예상 계약: ${fc.expectedDeals}건`);
     if (cur.newLeads.length > 0) {
       lines.push(`- 신규: ${cur.newLeads.map((l) => `${l.name}(${l.source})`).join(", ")}`);
     }

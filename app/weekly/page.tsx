@@ -18,7 +18,13 @@ import {
   productWeekly,
   threadsWeekly,
 } from "@/lib/weekly";
-import type { AppData, Product, WeeklyActivity, WeeklyCompetitorStat } from "@/lib/types";
+import type {
+  AppData,
+  MonthlyForecast,
+  Product,
+  WeeklyActivity,
+  WeeklyCompetitorStat,
+} from "@/lib/types";
 
 const selectCls =
   "rounded-md border border-zinc-300 bg-white px-2.5 py-1.5 text-sm focus:border-zinc-500 focus:outline-none";
@@ -262,6 +268,55 @@ function CompetitorEditor({
   );
 }
 
+// 월 마감 예상 계약 (담당자 입력 + 자동 참고치)
+function ForecastInput({
+  monthLabel,
+  autoRef,
+  existing,
+  confirmed,
+  promising,
+  onSave,
+}: {
+  monthLabel: string;
+  autoRef: number;
+  existing?: number;
+  confirmed: number;
+  promising: number;
+  onSave: (v: number) => void;
+}) {
+  const [val, setVal] = useState<number>(existing ?? autoRef);
+  const [saved, setSaved] = useState(false);
+  useEffect(() => {
+    setVal(existing ?? autoRef);
+  }, [existing, autoRef]);
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-zinc-100 bg-zinc-50 p-3">
+      <span className="text-xs font-semibold text-zinc-500">{monthLabel} 마감 예상 계약</span>
+      <input
+        type="number"
+        min={0}
+        className="w-16 rounded-md border border-zinc-300 bg-white px-2 py-1 text-sm focus:border-zinc-500 focus:outline-none"
+        value={val}
+        onChange={(e) => setVal(Math.max(0, Number(e.target.value) || 0))}
+      />
+      <span className="text-xs text-zinc-500">건</span>
+      <span className="text-[11px] text-zinc-400">
+        (참고: 확정 {confirmed} + 유망 {promising} = {autoRef})
+      </span>
+      <button
+        onClick={() => {
+          onSave(val);
+          setSaved(true);
+          setTimeout(() => setSaved(false), 1500);
+        }}
+        className="ml-auto whitespace-nowrap rounded-md bg-zinc-900 px-3 py-1 text-xs font-medium text-white hover:bg-zinc-700"
+      >
+        {saved ? "✓ 저장됨" : "저장"}
+      </button>
+    </div>
+  );
+}
+
 export default function WeeklyPage() {
   const { data, update } = useAppData();
   const today = getToday();
@@ -321,6 +376,18 @@ export default function WeeklyPage() {
       weeklyCompetitorStats: [
         ...(d.weeklyCompetitorStats ?? []).filter((x) => x.weekStart !== week.start),
         ...rows,
+      ],
+    }));
+
+  const forecastMonth = week.start.slice(0, 7);
+  const saveForecast = (product: Product, expectedDeals: number) =>
+    update((d: AppData) => ({
+      ...d,
+      monthlyForecasts: [
+        ...(d.monthlyForecasts ?? []).filter(
+          (f) => !(f.month === forecastMonth && f.product === product),
+        ),
+        { id: `${forecastMonth}:${product}`, month: forecastMonth, product, expectedDeals } as MonthlyForecast,
       ],
     }));
 
@@ -442,10 +509,18 @@ export default function WeeklyPage() {
           const prev = productWeekly(data.leads, prevWeek, p);
           const pipe = pipelineValue(data.leads.filter((l) => l.product === p));
           const weekMonth = week.start.slice(0, 7);
-          const monthDeals = contractsInMonth(
-            data.leads.filter((l) => l.product === p),
-            weekMonth,
+          const pLeads = data.leads.filter((l) => l.product === p);
+          const monthDeals = contractsInMonth(pLeads, weekMonth).length;
+          // 유망 파이프라인: 제안·견적/계약 검토 단계이면서 계약 가능성 높음
+          const promising = pLeads.filter(
+            (l) =>
+              (l.status === "제안·견적" || l.status === "계약 검토") &&
+              l.dealProbability === "높음",
           ).length;
+          const forecastRef = monthDeals + promising;
+          const savedForecast = (data.monthlyForecasts ?? []).find(
+            (f) => f.month === weekMonth && f.product === p,
+          )?.expectedDeals;
           return (
             <section key={p} className="rounded-xl border border-zinc-200 bg-white p-4">
               <h2 className="mb-3 text-sm font-semibold">
@@ -480,6 +555,17 @@ export default function WeeklyPage() {
                   />
                 )}
               </div>
+
+              {/* 월 마감 예상 계약 (담당자 입력) */}
+              <ForecastInput
+                key={`fc-${p}-${weekMonth}`}
+                monthLabel={`${parseInt(weekMonth.slice(5), 10)}월`}
+                autoRef={forecastRef}
+                existing={savedForecast}
+                confirmed={monthDeals}
+                promising={promising}
+                onSave={(v) => saveForecast(p, v)}
+              />
 
               {/* 주간 광고 성과 (매체별) */}
               {(() => {

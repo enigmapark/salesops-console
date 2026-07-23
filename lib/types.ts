@@ -158,6 +158,14 @@ export interface WeeklyNote {
   text: string;
 }
 
+// 월 마감 예상 계약 (세일즈 포캐스트 — 제품별, 월 단위, 담당자 입력)
+export interface MonthlyForecast {
+  id: string; // `${month}:${product}`
+  month: string; // YYYY-MM
+  product: Product;
+  expectedDeals: number;
+}
+
 // 주간 경쟁사 문의 현황 (경쟁사에 들어온 문의 수 — 시장 규모 벤치마크, 링고용)
 export interface WeeklyCompetitorStat {
   id: string; // `${weekStart}:${competitor}`
@@ -189,4 +197,5 @@ export interface AppData {
   weeklyNotes: WeeklyNote[];
   salesInsights: SalesInsight[];
   weeklyCompetitorStats: WeeklyCompetitorStat[];
+  monthlyForecasts: MonthlyForecast[];
 }
