@@ -70,6 +70,7 @@ export function normalizeAppData(parsed: Partial<AppData> | null | undefined): A
     weeklyAdStats: p.weeklyAdStats ?? [],
     weeklyNotes: p.weeklyNotes ?? [],
     salesInsights: p.salesInsights ?? [],
+    weeklyCompetitorStats: p.weeklyCompetitorStats ?? [],
   };
 }
 
