@@ -461,7 +461,7 @@ export default function WeeklyPage() {
         </div>
       </div>
 
-      {/* 대표용 한 줄 요약 — 광고비 → 문의 → 계약 흐름을 제품별로 */}
+      {/* 대표용 한 줄 요약 — 신규 리드·계약(CRM 실집계) 먼저, 광고비·광고 문의(매체 집계)는 보조 지표 */}
       <section className="rounded-xl bg-zinc-900 p-4 text-white">
         <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
           이번 주 한 줄 요약 · {week.label}
@@ -479,16 +479,16 @@ export default function WeeklyPage() {
           return (
             <p key={p} className="mt-2 text-sm leading-relaxed">
               <span className="mr-1.5 rounded bg-white/15 px-1.5 py-0.5 text-xs font-bold">{p}</span>
-              광고비 {fmtWon(spend)} → 문의 {inq}건
-              {cpl !== null && <span className="text-zinc-300"> (CPL {fmtWon(cpl)})</span>} · 신규
-              리드 {wk.newLeads.length}건 · 계약 {wk.contracts.length}건
+              신규 리드 {wk.newLeads.length}건 · 계약 {wk.contracts.length}건
               <span className="text-zinc-400"> (월 누적 {monthDeals}건)</span>
               {wk.upsells.length > 0 && (
                 <span className="text-zinc-400"> · 업셀 {wk.upsells.length}건</span>
               )}
               <br />
               <span className="text-zinc-300">
-                └ 신규 MRR {fmtWon(wk.mrr)} · {parseInt(month.slice(5), 10)}월 누적 MRR{" "}
+                └ 광고비 {fmtWon(spend)} · 광고 문의 {inq}건
+                {cpl !== null && <span> (CPL {fmtWon(cpl)})</span>} · 신규 MRR {fmtWon(wk.mrr)} ·{" "}
+                {parseInt(month.slice(5), 10)}월 누적 MRR{" "}
                 <span className="font-semibold text-white">{fmtWon(monthMrr)}</span>
               </span>
             </p>
@@ -506,8 +506,8 @@ export default function WeeklyPage() {
             productWeekly(data.leads, week, "뉴로").contracts.length;
           return (
             <p className="mt-2.5 border-t border-white/10 pt-2 text-xs text-zinc-400">
-              전체 합계 — 광고비 {fmtWon(spend)} · 문의 {inq}건 · 신규 리드 {newLeads}건 · 계약{" "}
-              {deals}건
+              전체 합계 — 신규 리드 {newLeads}건 · 계약 {deals}건 · 광고비 {fmtWon(spend)} · 광고 문의{" "}
+              {inq}건
             </p>
           );
         })()}
