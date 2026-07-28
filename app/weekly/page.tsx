@@ -209,21 +209,22 @@ function CompetitorEditor({
   stats: WeeklyCompetitorStat[];
   onSave: (rows: WeeklyCompetitorStat[]) => void;
 }) {
-  const initial = LINGO_COMPETITORS.map(
-    (c) => stats.find((s) => s.competitor === c)?.inquiries ?? 0,
-  );
-  const [vals, setVals] = useState<number[]>(initial);
+  const readVals = () => LINGO_COMPETITORS.map((c) => stats.find((s) => s.competitor === c)?.inquiries ?? 0);
+  const readNotes = () => LINGO_COMPETITORS.map((c) => stats.find((s) => s.competitor === c)?.note ?? "");
+  const [vals, setVals] = useState<number[]>(readVals);
+  const [notes, setNotes] = useState<string[]>(readNotes);
   const [saved, setSaved] = useState(false);
   useEffect(() => {
-    setVals(LINGO_COMPETITORS.map((c) => stats.find((s) => s.competitor === c)?.inquiries ?? 0));
+    setVals(readVals());
+    setNotes(readNotes());
   }, [stats]);
   const inputCls =
     "w-full rounded-md border border-zinc-300 bg-white px-2 py-1 text-sm focus:border-zinc-500 focus:outline-none";
   return (
     <div className="mt-3 rounded-lg border border-zinc-100 bg-zinc-50 p-3">
       <p className="mb-2 text-xs font-semibold text-zinc-500">
-        경쟁사 문의 현황 · {week.label}{" "}
-        <span className="font-normal text-zinc-400">(문의 수 확인 가능한 곳만)</span>
+        경쟁사 동향 · {week.label}{" "}
+        <span className="font-normal text-zinc-400">(확인 가능한 곳만 · 메모로 기준 표기)</span>
       </p>
       <div className="grid grid-cols-2 gap-2">
         {LINGO_COMPETITORS.map((c, i) => (
@@ -240,12 +241,23 @@ function CompetitorEditor({
                 setVals(next);
               }}
             />
+            <input
+              type="text"
+              placeholder="메모 (예: 신규개설 문의 / 월 누적 계약)"
+              className={`${inputCls} mt-1 text-[11px]`}
+              value={notes[i]}
+              onChange={(e) => {
+                const next = [...notes];
+                next[i] = e.target.value;
+                setNotes(next);
+              }}
+            />
           </div>
         ))}
       </div>
       <div className="mt-2 flex items-center justify-between">
         <p className="text-[11px] text-zinc-400">
-          그 외 경쟁사는 CS만 운영해 문의 수 확인 불가
+          그 외 경쟁사는 CS만 운영해 수치 확인 불가
         </p>
         <button
           onClick={() => {
@@ -255,6 +267,7 @@ function CompetitorEditor({
                 weekStart: week.start,
                 competitor: c,
                 inquiries: vals[i],
+                note: notes[i].trim() || undefined,
               })),
             );
             setSaved(true);

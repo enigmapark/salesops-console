@@ -128,8 +128,10 @@ export function buildWeeklyCopyText(
   }
   const compStats = (data.weeklyCompetitorStats ?? []).filter((s) => s.weekStart === w.start);
   if (compStats.length > 0) {
-    lines.push("■ 경쟁사 문의 현황 (링고 · 시장 벤치마크)");
-    lines.push(`- ${compStats.map((s) => `${s.competitor} ${s.inquiries}건`).join(" · ")}`);
+    lines.push("■ 경쟁사 동향 (링고 · 시장 벤치마크)");
+    for (const s of compStats) {
+      lines.push(`- ${s.competitor} ${s.inquiries}건${s.note ? ` (${s.note})` : ""}`);
+    }
   }
   const t = threadsWeekly(data, w);
   lines.push("■ 무료 채널 게시");
