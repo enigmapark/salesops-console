@@ -211,17 +211,13 @@ export default function ReportPage() {
               <span className="text-xs font-normal text-zinc-400">(월별 결제 내역)</span>
             </h2>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[720px] text-sm">
+              <table className="w-full min-w-[420px] text-sm">
                 <thead>
                   <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500">
                     <th className="py-2 font-medium">월</th>
-                    <th className="py-2 text-right font-medium">체결</th>
+                    <th className="py-2 text-right font-medium">계약 건수</th>
                     <th className="py-2 text-right font-medium">계약금액</th>
                     <th className="py-2 text-right font-medium">실 결제</th>
-                    <th className="py-2 text-right font-medium">이용료</th>
-                    <th className="py-2 text-right font-medium">크레딧</th>
-                    <th className="py-2 text-right font-medium">세팅비</th>
-                    <th className="py-2 text-right font-medium">기타 옵션</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -236,18 +232,6 @@ export default function ReportPage() {
                         <td className="py-1.5 text-right tabular-nums">{fmtNum(r.deals)}건</td>
                         <td className="py-1.5 text-right tabular-nums">{fmtWon(r.contractAmount)}</td>
                         <td className="py-1.5 text-right tabular-nums">{fmtWon(r.actualPayment)}</td>
-                        <td className="py-1.5 text-right tabular-nums text-zinc-500">
-                          {r.usageFee > 0 ? fmtWon(r.usageFee) : "–"}
-                        </td>
-                        <td className="py-1.5 text-right tabular-nums text-zinc-500">
-                          {r.credit > 0 ? fmtWon(r.credit) : "–"}
-                        </td>
-                        <td className="py-1.5 text-right tabular-nums text-zinc-500">
-                          {r.setupFee > 0 ? fmtWon(r.setupFee) : "–"}
-                        </td>
-                        <td className="py-1.5 text-right tabular-nums text-zinc-500">
-                          {r.otherOptions > 0 ? fmtWon(r.otherOptions) : "–"}
-                        </td>
                       </tr>
                     );
                   })}
@@ -258,10 +242,6 @@ export default function ReportPage() {
                     <td className="py-2 text-right tabular-nums">{fmtNum(totals.deals)}건</td>
                     <td className="py-2 text-right tabular-nums">{fmtWon(totals.contractAmount)}</td>
                     <td className="py-2 text-right tabular-nums">{fmtWon(totals.actualPayment)}</td>
-                    <td className="py-2 text-right tabular-nums">{fmtWon(totals.usageFee)}</td>
-                    <td className="py-2 text-right tabular-nums">{fmtWon(totals.credit)}</td>
-                    <td className="py-2 text-right tabular-nums">{fmtWon(totals.setupFee)}</td>
-                    <td className="py-2 text-right tabular-nums">{fmtWon(totals.otherOptions)}</td>
                   </tr>
                 </tfoot>
               </table>

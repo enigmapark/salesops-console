@@ -299,24 +299,24 @@ export default function DashboardPage() {
                   <p className="mb-2 text-xs font-semibold text-zinc-500">{product}</p>
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                     <KpiCard
-                      label="누적 실결제"
-                      value={fmtWon(totals.actualPayment)}
-                      sub={`체결 ${fmtNum(totals.deals)}건 누적`}
+                      label={`이번 달 계약 (${thisMonth})`}
+                      value={thisM ? `${fmtNum(thisM.deals)}건` : "0건"}
+                      sub={thisM ? `계약금액 ${fmtWon(thisM.contractAmount)}` : "데이터 없음"}
                     />
                     <KpiCard
-                      label={`이번 달 실결제 (${thisMonth})`}
+                      label="이번 달 실결제"
                       value={thisM ? fmtWon(thisM.actualPayment) : "0원"}
-                      sub={thisM ? `체결 ${fmtNum(thisM.deals)}건` : "데이터 없음"}
+                      sub={thisM ? "실제 입금액" : "데이터 없음"}
                     />
                     <KpiCard
                       label="누적 계약금액"
                       value={fmtWon(totals.contractAmount)}
-                      sub="계약 기준 총액"
+                      sub={`체결 ${fmtNum(totals.deals)}건 누적`}
                     />
                     <KpiCard
-                      label="누적 이용료"
-                      value={fmtWon(totals.usageFee)}
-                      sub="반복 매출분"
+                      label="누적 실결제"
+                      value={fmtWon(totals.actualPayment)}
+                      sub="실제 입금 누적"
                     />
                   </div>
                 </div>
