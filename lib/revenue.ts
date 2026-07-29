@@ -1,10 +1,10 @@
 import type { AppData, MonthlyRevenue, Product } from "./types";
 
-// 제품별 월별 매출 내역 (월 오름차순 정렬)
+// 제품별 월별 매출 내역 (월 내림차순 정렬 — 최신 달이 맨 위)
 export function revenuesFor(data: AppData, product: Product): MonthlyRevenue[] {
   return (data.monthlyRevenues ?? [])
     .filter((r) => r.product === product)
-    .sort((a, b) => (a.month < b.month ? -1 : 1));
+    .sort((a, b) => b.month.localeCompare(a.month));
 }
 
 // 특정 월·제품의 매출 1건
