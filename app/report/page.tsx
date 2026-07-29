@@ -6,6 +6,7 @@ import { dealRate, isFreeChannel, safeDiv } from "@/lib/channel";
 import { contractsInMonth, newMrrInMonth, upsellsInMonth } from "@/lib/exec";
 import { fmtNum, fmtPct, fmtWon } from "@/lib/format";
 import { revenueTotals, revenuesFor } from "@/lib/revenue";
+import { RevenueTrendChart } from "@/components/charts/RevenueTrendChart";
 import {
   availableMonths,
   buildCopyText,
@@ -249,6 +250,20 @@ export default function ReportPage() {
             <p className="mt-2 text-[11px] text-zinc-400">
               선택한 달({month})은 파란 강조 · 실 결제 = 실제 입금액(계약금액과 다를 수 있음: 할인·미납·분할 등)
             </p>
+            <div className="mt-4 border-t border-zinc-100 pt-4">
+              <p className="mb-1 text-xs font-medium text-zinc-500">
+                월별 추이 <span className="font-normal text-zinc-400">(막대: 실 결제 · 선: 계약 건수)</span>
+              </p>
+              <RevenueTrendChart
+                data={[...rows]
+                  .reverse()
+                  .map((r) => ({
+                    month: r.month,
+                    actualPayment: r.actualPayment,
+                    deals: r.deals,
+                  }))}
+              />
+            </div>
           </section>
         );
       })}
