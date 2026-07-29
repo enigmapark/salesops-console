@@ -67,10 +67,10 @@ export function RevenueTrendChart({ data }: { data: RevenueTrendDatum[] }) {
             tick={{ fontSize: 11, fill: "#52525b" }}
           />
           <Tooltip
-            formatter={(value: number, name: string) =>
+            formatter={(value, name) =>
               name === "실 결제"
-                ? [`${value.toLocaleString()}원`, "실 결제"]
-                : [`${value}건`, "계약 건수"]
+                ? [`${Number(value).toLocaleString()}원`, "실 결제"]
+                : [`${Number(value)}건`, "계약 건수"]
             }
             contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #e4e4e7" }}
           />

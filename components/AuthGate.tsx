@@ -42,7 +42,7 @@ function LoginForm() {
   return (
     <div className="flex min-h-[70vh] items-center justify-center px-4">
       <div className="w-full max-w-sm rounded-xl border border-zinc-200 bg-white p-6">
-        <h1 className="text-lg font-bold">Account Team Report</h1>
+        <h1 className="text-lg font-bold">Lingo · Neuro SalesOps</h1>
         <p className="mt-1 text-xs text-zinc-500">팀 전용 — 로그인 후 이용하세요.</p>
         <div className="mt-5 space-y-3">
           <div>

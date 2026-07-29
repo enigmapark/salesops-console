@@ -26,7 +26,7 @@ export function Nav() {
     <header className="border-b border-zinc-200 bg-white">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
         <Link href="/dashboard" className="text-base font-bold tracking-tight">
-          Account Team Report
+          Lingo · Neuro SalesOps
         </Link>
         <nav className="flex items-center gap-1 text-sm">
           {LINKS.map((link) => {

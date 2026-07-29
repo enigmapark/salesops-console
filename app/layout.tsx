@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Account Team Report",
-  description: "리드 스코어링·채널 퍼널·월간 보고를 한곳에서 관리하는 어카운트팀 대시보드",
+  title: "Lingo · Neuro SalesOps",
+  description: "링고·뉴로 제품별 리드·계약·매출·채널 성과를 한곳에서 관리하는 세일즈 운영 대시보드",
 };
 
 export default function RootLayout({
