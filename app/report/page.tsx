@@ -5,6 +5,7 @@ import { KpiCard } from "@/components/KpiCard";
 import { dealRate, isFreeChannel, safeDiv } from "@/lib/channel";
 import { contractsInMonth, newMrrInMonth, upsellsInMonth } from "@/lib/exec";
 import { fmtNum, fmtPct, fmtWon } from "@/lib/format";
+import { revenueTotals, revenuesFor } from "@/lib/revenue";
 import {
   availableMonths,
   buildCopyText,
@@ -197,6 +198,80 @@ export default function ReportPage() {
           최종 계약 비율 · 광고비의 공통 채널분은 전체에만 포함
         </p>
       </section>
+
+      {/* 매출 상세 — 제품별 월별 결제 원장 (실데이터, 데이터 있는 제품만 표시) */}
+      {(["링고", "뉴로"] as Product[]).map((product) => {
+        const rows = revenuesFor(data, product);
+        if (rows.length === 0) return null;
+        const totals = revenueTotals(data, product);
+        return (
+          <section key={`rev-${product}`} className="rounded-xl border border-zinc-200 bg-white p-4">
+            <h2 className="mb-3 text-sm font-semibold">
+              {product} 매출 상세{" "}
+              <span className="text-xs font-normal text-zinc-400">(월별 결제 내역)</span>
+            </h2>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[720px] text-sm">
+                <thead>
+                  <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500">
+                    <th className="py-2 font-medium">월</th>
+                    <th className="py-2 text-right font-medium">체결</th>
+                    <th className="py-2 text-right font-medium">계약금액</th>
+                    <th className="py-2 text-right font-medium">실 결제</th>
+                    <th className="py-2 text-right font-medium">이용료</th>
+                    <th className="py-2 text-right font-medium">크레딧</th>
+                    <th className="py-2 text-right font-medium">세팅비</th>
+                    <th className="py-2 text-right font-medium">기타 옵션</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((r) => {
+                    const isSel = r.month === month;
+                    return (
+                      <tr
+                        key={r.id}
+                        className={`border-b border-zinc-100 ${isSel ? "bg-indigo-50 font-medium" : ""}`}
+                      >
+                        <td className="py-1.5">{r.month}</td>
+                        <td className="py-1.5 text-right tabular-nums">{fmtNum(r.deals)}건</td>
+                        <td className="py-1.5 text-right tabular-nums">{fmtWon(r.contractAmount)}</td>
+                        <td className="py-1.5 text-right tabular-nums">{fmtWon(r.actualPayment)}</td>
+                        <td className="py-1.5 text-right tabular-nums text-zinc-500">
+                          {r.usageFee > 0 ? fmtWon(r.usageFee) : "–"}
+                        </td>
+                        <td className="py-1.5 text-right tabular-nums text-zinc-500">
+                          {r.credit > 0 ? fmtWon(r.credit) : "–"}
+                        </td>
+                        <td className="py-1.5 text-right tabular-nums text-zinc-500">
+                          {r.setupFee > 0 ? fmtWon(r.setupFee) : "–"}
+                        </td>
+                        <td className="py-1.5 text-right tabular-nums text-zinc-500">
+                          {r.otherOptions > 0 ? fmtWon(r.otherOptions) : "–"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t-2 border-zinc-300 font-semibold">
+                    <td className="py-2">총계</td>
+                    <td className="py-2 text-right tabular-nums">{fmtNum(totals.deals)}건</td>
+                    <td className="py-2 text-right tabular-nums">{fmtWon(totals.contractAmount)}</td>
+                    <td className="py-2 text-right tabular-nums">{fmtWon(totals.actualPayment)}</td>
+                    <td className="py-2 text-right tabular-nums">{fmtWon(totals.usageFee)}</td>
+                    <td className="py-2 text-right tabular-nums">{fmtWon(totals.credit)}</td>
+                    <td className="py-2 text-right tabular-nums">{fmtWon(totals.setupFee)}</td>
+                    <td className="py-2 text-right tabular-nums">{fmtWon(totals.otherOptions)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+            <p className="mt-2 text-[11px] text-zinc-400">
+              선택한 달({month})은 파란 강조 · 실 결제 = 실제 입금액(계약금액과 다를 수 있음: 할인·미납·분할 등)
+            </p>
+          </section>
+        );
+      })}
 
       {/* 제품별 집계 — 링고 / 뉴로 각각 신규 리드·계약·채널 내역 */}
       <div className="grid gap-4 lg:grid-cols-2">

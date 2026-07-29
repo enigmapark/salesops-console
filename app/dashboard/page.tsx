@@ -19,6 +19,7 @@ import { ChannelConversionChart } from "@/components/charts/ChannelConversionCha
 import { GradeDistributionChart } from "@/components/charts/GradeDistributionChart";
 import { cac, cpl, dealRate, isFreeChannel, safeDiv, sortByDealRateDesc } from "@/lib/channel";
 import { fmtNum, fmtPct, fmtWon } from "@/lib/format";
+import { revenueOf, revenueTotals, revenuesFor } from "@/lib/revenue";
 import { GRADES } from "@/lib/options";
 import { calcGrade, needsContact, sortByScoreDesc } from "@/lib/scoring";
 import { getToday } from "@/lib/today";
@@ -277,6 +278,53 @@ export default function DashboardPage() {
           </table>
         </div>
       </section>
+
+      {/* 제품별 매출 요약 — 실 결제 원장 기준 (데이터 있는 제품만, 상세는 월간 보고) */}
+      {(["링고", "뉴로"] as const).some((p) => revenuesFor(data, p).length > 0) && (
+        <section className="rounded-xl border border-zinc-200 bg-white p-4">
+          <h2 className="mb-1 text-sm font-semibold">
+            제품별 매출 요약
+            <span className="ml-1.5 text-xs font-normal text-zinc-400">
+              실 결제 기준 · 월별 상세는 &ldquo;월간 보고&rdquo;
+            </span>
+          </h2>
+          <div className="mt-3 space-y-4">
+            {(["링고", "뉴로"] as const).map((product) => {
+              const rows = revenuesFor(data, product);
+              if (rows.length === 0) return null;
+              const totals = revenueTotals(data, product);
+              const thisM = revenueOf(data, thisMonth, product);
+              return (
+                <div key={product}>
+                  <p className="mb-2 text-xs font-semibold text-zinc-500">{product}</p>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <KpiCard
+                      label="누적 실결제"
+                      value={fmtWon(totals.actualPayment)}
+                      sub={`체결 ${fmtNum(totals.deals)}건 누적`}
+                    />
+                    <KpiCard
+                      label={`이번 달 실결제 (${thisMonth})`}
+                      value={thisM ? fmtWon(thisM.actualPayment) : "0원"}
+                      sub={thisM ? `체결 ${fmtNum(thisM.deals)}건` : "데이터 없음"}
+                    />
+                    <KpiCard
+                      label="누적 계약금액"
+                      value={fmtWon(totals.contractAmount)}
+                      sub="계약 기준 총액"
+                    />
+                    <KpiCard
+                      label="누적 이용료"
+                      value={fmtWon(totals.usageFee)}
+                      sub="반복 매출분"
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* 제품별 리드 패널 — 링고 / 뉴로 각각의 리드 목록 */}
       <div className="grid gap-4 lg:grid-cols-2">

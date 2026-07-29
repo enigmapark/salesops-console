@@ -166,6 +166,20 @@ export interface MonthlyForecast {
   expectedDeals: number;
 }
 
+// 월별 매출·결제 내역 (제품별 — 실제 결제 원장. 리드/계약 데이터와 별도로 관리)
+export interface MonthlyRevenue {
+  id: string; // `${month}:${product}`
+  month: string; // YYYY-MM
+  product: Product;
+  deals: number; // 체결 건수
+  contractAmount: number; // 계약금액
+  actualPayment: number; // 실 결제
+  usageFee: number; // 이용료
+  credit: number; // 크레딧
+  setupFee: number; // 세팅비
+  otherOptions: number; // 기타 옵션비
+}
+
 // 주간 경쟁사 문의 현황 (경쟁사에 들어온 문의 수 — 시장 규모 벤치마크, 링고용)
 export interface WeeklyCompetitorStat {
   id: string; // `${weekStart}:${competitor}`
@@ -198,4 +212,5 @@ export interface AppData {
   salesInsights: SalesInsight[];
   weeklyCompetitorStats: WeeklyCompetitorStat[];
   monthlyForecasts: MonthlyForecast[];
+  monthlyRevenues: MonthlyRevenue[];
 }

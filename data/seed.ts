@@ -338,4 +338,5 @@ export const seedData: AppData = {
   salesInsights: [],
   weeklyCompetitorStats: [],
   monthlyForecasts: [],
+  monthlyRevenues: [],
 };
