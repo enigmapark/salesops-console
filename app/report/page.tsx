@@ -347,10 +347,11 @@ export default function ReportPage() {
               ? prevReport.lingo
               : prevReport.neuro
             : null;
-          const amount = monthDealLeads
-            .filter((l) => l.product === product)
-            .reduce((sum, l) => sum + l.expectedAmount, 0);
           const channels = productChannelBreakdown(data.leads, month, product);
+          const pLeads = data.leads.filter((l) => l.product === product);
+          const dealsCM = contractsInMonth(pLeads, month).length;
+          const dealsCMPrev = prevReport ? contractsInMonth(pLeads, prevMonthOf(month)).length : 0;
+          const amountCM = contractsInMonth(pLeads, month).reduce((s, l) => s + l.expectedAmount, 0);
           return (
             <section key={product} className="rounded-xl border border-zinc-200 bg-white p-4">
               <h2 className="mb-3 text-sm font-semibold">
@@ -366,40 +367,50 @@ export default function ReportPage() {
                   sub={prev ? deltaLabel(cur.newLeads, prev.newLeads) : undefined}
                 />
                 <KpiCard
-                  label="계약 건수"
-                  value={`${fmtNum(cur.deals)}건`}
-                  sub={`${prev ? deltaCountLabel(cur.deals, prev.deals) : ""}${amount > 0 ? ` · ${fmtWon(amount)}` : ""}`}
+                  label="당월 계약"
+                  value={`${fmtNum(dealsCM)}건`}
+                  sub={`${prev ? deltaCountLabel(dealsCM, dealsCMPrev) : ""}${amountCM > 0 ? ` · ${fmtWon(amountCM)}` : ""}`}
                 />
                 <KpiCard
                   label="광고비 (소진)"
                   value={spendBy(product) > 0 ? fmtWon(spendBy(product)) : "0원"}
                   sub="해당 월 채널 퍼널 합계"
                 />
-                <KpiCard label="전환율" value={fmtPct(cur.conversionRate)} sub="계약 ÷ 신규 리드" />
+                <KpiCard
+                  label="코호트 전환율"
+                  value={fmtPct(cur.conversionRate)}
+                  sub="이 달 유입 리드 중 계약"
+                />
               </div>
               {channels.length === 0 ? (
                 <p className="rounded-lg bg-zinc-50 py-3 text-center text-xs text-zinc-400">
                   이 달 {product} 신규 리드가 없습니다.
                 </p>
               ) : (
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500">
-                      <th className="py-1.5 font-medium">유입 채널</th>
-                      <th className="py-1.5 text-right font-medium">리드</th>
-                      <th className="py-1.5 text-right font-medium">계약</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {channels.map((c) => (
-                      <tr key={c.source} className="border-b border-zinc-100 last:border-0">
-                        <td className="py-1.5">{c.source}</td>
-                        <td className="py-1.5 text-right tabular-nums">{fmtNum(c.leads)}</td>
-                        <td className="py-1.5 text-right tabular-nums">{fmtNum(c.deals)}</td>
+                <>
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500">
+                        <th className="py-1.5 font-medium">유입 채널</th>
+                        <th className="py-1.5 text-right font-medium">유입 리드</th>
+                        <th className="py-1.5 text-right font-medium">그중 계약</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {channels.map((c) => (
+                        <tr key={c.source} className="border-b border-zinc-100 last:border-0">
+                          <td className="py-1.5">{c.source}</td>
+                          <td className="py-1.5 text-right tabular-nums">{fmtNum(c.leads)}</td>
+                          <td className="py-1.5 text-right tabular-nums">{fmtNum(c.deals)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <p className="mt-2 text-[11px] text-zinc-400">
+                    이 표·코호트 전환율은 <b>이 달 유입 리드</b> 기준 · 위 &ldquo;당월 계약&rdquo;({dealsCM}건)은
+                    계약일 기준이라 숫자가 다를 수 있음(이전 달 유입분이 이번 달 계약된 경우 포함)
+                  </p>
+                </>
               )}
             </section>
           );
