@@ -70,7 +70,6 @@ export default function ReportPage() {
     (l) => l.firstInquiry.startsWith(month) && l.status === "계약",
   );
   const monthDealCount = monthDealLeads.length;
-  const monthDealAmount = monthDealLeads.reduce((sum, l) => sum + l.expectedAmount, 0);
 
   // 제품별 광고비 (해당 월 채널 퍼널의 소진 금액 합)
   const spendBy = (p: Product) =>
@@ -417,17 +416,17 @@ export default function ReportPage() {
         })}
       </div>
 
-      {/* 전체 합계 */}
+      {/* 전체 합계 — 실제 리드·계약 기준으로 통일 (계약일 기준) */}
       <div className="grid grid-cols-2 gap-3">
         <KpiCard
-          label="전체 계약 건수"
-          value={`${fmtNum(monthDealCount)}건`}
-          sub={`${prevReport ? deltaCountLabel(monthDealCount, prevReport.lingo.deals + prevReport.neuro.deals) : ""}${monthDealAmount > 0 ? ` · 예상 ${fmtWon(monthDealAmount)}` : ""}`}
+          label="당월 계약 (계약일 기준)"
+          value={`${fmtNum(closedThisMonth.length)}건`}
+          sub={`${prevReport ? deltaCountLabel(closedThisMonth.length, contractsInMonth(data.leads, prevMonthOf(month)).length) : ""} · 업셀 제외`}
         />
         <KpiCard
-          label="채널 합계 (퍼널 데이터)"
-          value={`${fmtNum(report.channelTotals.leads)} 리드`}
-          sub={`계약 ${report.channelTotals.deals}건 · 전환율 ${fmtPct(report.channelConversion)} · 광고비 ${fmtWon(report.channelTotals.spend)}`}
+          label="전체 신규 MRR"
+          value={fmtWon(totalNewMrr)}
+          sub="이 달 신규+업셀 월 반복매출"
         />
       </div>
 
@@ -470,9 +469,18 @@ export default function ReportPage() {
         </div>
       )}
 
-      {/* 채널별 상세 — 링고 / 뉴로 / 공통 구분 */}
-      <section className="rounded-xl border border-zinc-200 bg-white p-4">
-        <h2 className="mb-3 text-sm font-semibold">{month} 채널별 계약전환율 (퍼널 데이터)</h2>
+      {/* 채널별 상세 — 링고 / 뉴로 / 공통 구분 (퍼널 별도 추적 소스 — CRM 리드/계약과 다를 수 있음) */}
+      <section className="rounded-xl border border-amber-200 bg-amber-50/40 p-4">
+        <h2 className="mb-1 text-sm font-semibold">
+          {month} 채널별 계약전환율{" "}
+          <span className="text-xs font-normal text-amber-700">
+            (퍼널 별도 추적 — CRM 계약수와 기준 다름)
+          </span>
+        </h2>
+        <p className="mb-3 text-[11px] text-amber-700/80">
+          이 표는 채널 퍼널에 별도로 입력된 값이라, 위 &ldquo;당월 계약&rdquo;(실제 리드 기준)과 숫자가 다를 수
+          있습니다. 값이 최신인지 확인이 필요합니다.
+        </p>
         {report.funnels.length === 0 ? (
           <p className="py-4 text-center text-sm text-zinc-400">이 달의 채널 데이터가 없습니다.</p>
         ) : (
