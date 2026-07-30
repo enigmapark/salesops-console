@@ -139,13 +139,11 @@ export default function ReportPage() {
 
       <h2 className="hidden text-lg font-bold print:block">[Lingo·Neuro 월간 보고] {month}</h2>
 
-      {/* 경영 요약 — 수요일 회의용 한 장 (제품별: 돈·효율·전망) */}
+      {/* 월간 Sales 현황 — 한 장 요약 (제품별: 돈·효율·전망) */}
       <section className="rounded-xl border-2 border-zinc-900 bg-white p-4">
         <h2 className="mb-1 text-sm font-bold">
-          경영 요약
-          <span className="ml-1.5 text-xs font-normal text-zinc-400">
-            {month} · 수요일 회의용 · 제품별
-          </span>
+          월간 Sales 현황
+          <span className="ml-1.5 text-xs font-normal text-zinc-400">{month} · 제품별</span>
         </h2>
         <p className="mb-3 text-[11px] text-zinc-400">
           돈(실결제·MRR) · 효율(CAC) · 전망(마감 예상)을 한눈에 · 세부는 아래 섹션
