@@ -5,7 +5,7 @@ import { KpiCard } from "@/components/KpiCard";
 import { dealRate, isFreeChannel, safeDiv } from "@/lib/channel";
 import { contractsInMonth, newMrrInMonth, upsellsInMonth } from "@/lib/exec";
 import { fmtNum, fmtPct, fmtWon } from "@/lib/format";
-import { revenueTotals, revenuesFor } from "@/lib/revenue";
+import { revenueOf, revenueTotals, revenuesFor } from "@/lib/revenue";
 import { RevenueTrendChart } from "@/components/charts/RevenueTrendChart";
 import {
   availableMonths,
@@ -137,7 +137,79 @@ export default function ReportPage() {
         </div>
       </div>
 
-      <h2 className="hidden text-lg font-bold print:block">[Account Team 월간 보고] {month}</h2>
+      <h2 className="hidden text-lg font-bold print:block">[Lingo·Neuro 월간 보고] {month}</h2>
+
+      {/* 경영 요약 — 수요일 회의용 한 장 (제품별: 돈·효율·전망) */}
+      <section className="rounded-xl border-2 border-zinc-900 bg-white p-4">
+        <h2 className="mb-1 text-sm font-bold">
+          경영 요약
+          <span className="ml-1.5 text-xs font-normal text-zinc-400">
+            {month} · 수요일 회의용 · 제품별
+          </span>
+        </h2>
+        <p className="mb-3 text-[11px] text-zinc-400">
+          돈(실결제·MRR) · 효율(CAC) · 전망(마감 예상)을 한눈에 · 세부는 아래 섹션
+        </p>
+        <div className="grid gap-4 lg:grid-cols-2">
+          {(["링고", "뉴로"] as Product[]).map((product) => {
+            const pLeads = data.leads.filter((l) => l.product === product);
+            const prevM = prevMonthOf(month);
+            const deals = contractsInMonth(pLeads, month).length;
+            const prevDeals = contractsInMonth(pLeads, prevM).length;
+            const mrr = newMrrInMonth(pLeads, month);
+            const prevMrr = newMrrInMonth(pLeads, prevM);
+            const rev = revenueOf(data, month, product);
+            const prevRev = revenueOf(data, prevM, product);
+            const spend = spendBy(product);
+            const cac = deals > 0 ? Math.round(spend / deals) : null;
+            const fc = (data.monthlyForecasts ?? []).find(
+              (f) => f.month === month && f.product === product,
+            );
+            return (
+              <div key={product} className="rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+                <p className="mb-2 text-xs font-semibold text-zinc-600">
+                  {product}{" "}
+                  <span className="font-normal text-zinc-400">
+                    {product === "링고" ? "인터넷신문 CMS" : "AI 광고"}
+                  </span>
+                </p>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <KpiCard
+                    label="이번 달 실결제"
+                    value={rev ? fmtWon(rev.actualPayment) : "–"}
+                    sub={
+                      rev && prevRev
+                        ? deltaLabel(rev.actualPayment, prevRev.actualPayment)
+                        : rev
+                          ? "전월 데이터 없음"
+                          : "매출 데이터 미입력"
+                    }
+                  />
+                  <KpiCard
+                    label="신규 MRR"
+                    value={fmtWon(mrr)}
+                    sub={`신규 계약 ${deals}건 · ${deltaCountLabel(deals, prevDeals)}`}
+                  />
+                  <KpiCard
+                    label="CAC (계약당 광고비)"
+                    value={cac !== null ? fmtWon(cac) : "–"}
+                    sub={deals > 0 ? `광고비 ${fmtWon(spend)} ÷ ${deals}건` : `광고비 ${fmtWon(spend)} · 계약 0건`}
+                  />
+                  <KpiCard
+                    label="이달 마감 예상"
+                    value={fc ? `${fc.expectedDeals}건` : "–"}
+                    sub={fc ? `현재 ${deals}건 완료` : "예상치 미입력"}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <p className="mt-3 text-[11px] text-zinc-400">
+          CAC = 이 달 광고비 ÷ 신규 계약 수(업셀 제외) · 실결제는 결제 원장 기준(리드 계약수와 별개) · MRR은
+          신규+업셀 월 반복매출
+        </p>
+      </section>
 
       {/* 제품 비교 — 광고비·리드·계약을 한눈에 */}
       <section className="rounded-xl border border-zinc-200 bg-white p-4">
