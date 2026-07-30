@@ -180,6 +180,16 @@ export interface MonthlyRevenue {
   otherOptions: number; // 기타 옵션비
 }
 
+// 월별 목표 (제품별 — 실적 대비 달성률 계산용. 담당자 입력)
+export interface MonthlyTarget {
+  id: string; // `${month}:${product}`
+  month: string; // YYYY-MM
+  product: Product;
+  revenueTarget: number; // 실결제 목표
+  mrrTarget: number; // 신규 MRR 목표
+  dealTarget: number; // 계약 건수 목표
+}
+
 // 주간 경쟁사 문의 현황 (경쟁사에 들어온 문의 수 — 시장 규모 벤치마크, 링고용)
 export interface WeeklyCompetitorStat {
   id: string; // `${weekStart}:${competitor}`
@@ -213,4 +223,6 @@ export interface AppData {
   weeklyCompetitorStats: WeeklyCompetitorStat[];
   monthlyForecasts: MonthlyForecast[];
   monthlyRevenues: MonthlyRevenue[];
+  monthlyTargets: MonthlyTarget[];
+  lastUpdated?: string; // 마지막 데이터 갱신 시각 (ISO) — 보고 화면 "최종 업데이트"용
 }

@@ -45,6 +45,8 @@ function migrateV1(parsed: Partial<AppData>): AppData {
     weeklyCompetitorStats: parsed.weeklyCompetitorStats ?? [],
     monthlyForecasts: parsed.monthlyForecasts ?? [],
     monthlyRevenues: parsed.monthlyRevenues ?? [],
+    monthlyTargets: parsed.monthlyTargets ?? [],
+    lastUpdated: parsed.lastUpdated,
   };
 }
 
@@ -75,6 +77,8 @@ export function normalizeAppData(parsed: Partial<AppData> | null | undefined): A
     weeklyCompetitorStats: p.weeklyCompetitorStats ?? [],
     monthlyForecasts: p.monthlyForecasts ?? [],
     monthlyRevenues: p.monthlyRevenues ?? [],
+    monthlyTargets: p.monthlyTargets ?? [],
+    lastUpdated: p.lastUpdated,
   };
 }
 
@@ -108,6 +112,8 @@ export function loadAppData(): AppData {
         weeklyCompetitorStats: parsed.weeklyCompetitorStats ?? [],
         monthlyForecasts: parsed.monthlyForecasts ?? [],
         monthlyRevenues: parsed.monthlyRevenues ?? [],
+        monthlyTargets: parsed.monthlyTargets ?? [],
+        lastUpdated: parsed.lastUpdated,
       };
       if (needFix) saveAppData(result);
       return result;

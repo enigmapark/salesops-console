@@ -144,9 +144,21 @@ export default function ReportPage() {
           월간 Sales 현황
           <span className="ml-1.5 text-xs font-normal text-zinc-400">{month} · 제품별</span>
         </h2>
-        <p className="mb-3 text-[11px] text-zinc-400">
-          돈(실결제·MRR) · 효율(CAC) · 전망(마감 예상)을 한눈에 · 세부는 아래 섹션
-        </p>
+        <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
+          <span className="rounded-full bg-zinc-900 px-2 py-0.5 font-semibold text-white">
+            {month === getToday().slice(0, 7) ? "잠정 실적 (마감 전)" : "확정 실적"}
+          </span>
+          <span className="text-zinc-400">
+            최종 업데이트:{" "}
+            {data.lastUpdated
+              ? new Date(data.lastUpdated).toLocaleString("ko-KR", {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })
+              : "미기록"}
+          </span>
+          <span className="text-zinc-400">· 돈(실결제·MRR) · 효율(CAC) · 전망(마감 예상)</span>
+        </div>
         <div className="grid gap-4 lg:grid-cols-2">
           {(["링고", "뉴로"] as Product[]).map((product) => {
             const pLeads = data.leads.filter((l) => l.product === product);
@@ -162,6 +174,10 @@ export default function ReportPage() {
             const fc = (data.monthlyForecasts ?? []).find(
               (f) => f.month === month && f.product === product,
             );
+            const tgt = (data.monthlyTargets ?? []).find(
+              (t) => t.month === month && t.product === product,
+            );
+            const pctOf = (a: number, t: number) => (t > 0 ? `${Math.round((a / t) * 100)}%` : "–");
             return (
               <div key={product} className="rounded-lg border border-zinc-200 bg-zinc-50 p-3">
                 <p className="mb-2 text-xs font-semibold text-zinc-600">
@@ -198,6 +214,15 @@ export default function ReportPage() {
                     sub={fc ? `현재 ${deals}건 완료` : "예상치 미입력"}
                   />
                 </div>
+                {tgt ? (
+                  <div className="mt-2 rounded-md border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] text-zinc-600">
+                    <span className="font-semibold text-zinc-500">목표 대비</span> · 실결제{" "}
+                    {rev ? pctOf(rev.actualPayment, tgt.revenueTarget) : "–"} · MRR{" "}
+                    {pctOf(mrr, tgt.mrrTarget)} · 계약 {pctOf(deals, tgt.dealTarget)}
+                  </div>
+                ) : (
+                  <div className="mt-2 text-[11px] text-zinc-400">목표 미설정</div>
+                )}
               </div>
             );
           })}

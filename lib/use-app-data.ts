@@ -48,7 +48,8 @@ export function useAppData() {
     (updater: (d: AppData) => AppData) => {
       setData((prev) => {
         if (!prev) return prev;
-        const next = updater(prev);
+        // 저장 시각 기록 — 보고 화면 "최종 업데이트"에 사용
+        const next = { ...updater(prev), lastUpdated: new Date().toISOString() };
         pending.current = next;
         if (saveTimer.current) clearTimeout(saveTimer.current);
         saveTimer.current = setTimeout(flush, 400);
