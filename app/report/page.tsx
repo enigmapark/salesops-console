@@ -187,7 +187,8 @@ export default function ReportPage() {
             const pLeads = data.leads.filter((l) => l.product === product);
             const prevM = prevMonthOf(month);
             const deals = contractsInMonth(pLeads, month).length;
-            const prevDeals = contractsInMonth(pLeads, prevM).length;
+            // 전월 계약 수는 매출 원장(월별 체결)에 과거 이력이 있어 그쪽을 우선 사용
+            const prevDeals = revenueOf(data, prevM, product)?.deals ?? contractsInMonth(pLeads, prevM).length;
             const mrr = newMrrInMonth(pLeads, month);
             const prevMrr = newMrrInMonth(pLeads, prevM);
             const rev = revenueOf(data, month, product);
@@ -421,7 +422,10 @@ export default function ReportPage() {
           const channels = productChannelBreakdown(data.leads, month, product);
           const pLeads = data.leads.filter((l) => l.product === product);
           const dealsCM = contractsInMonth(pLeads, month).length;
-          const dealsCMPrev = prevReport ? contractsInMonth(pLeads, prevMonthOf(month)).length : 0;
+          // 전월 계약 수는 매출 원장(월별 체결)에 과거 이력이 있어 그쪽을 우선 사용
+          const dealsCMPrev =
+            revenueOf(data, prevMonthOf(month), product)?.deals ??
+            (prevReport ? contractsInMonth(pLeads, prevMonthOf(month)).length : 0);
           const amountCM = contractsInMonth(pLeads, month).reduce((s, l) => s + l.expectedAmount, 0);
           return (
             <section key={product} className="rounded-xl border border-zinc-200 bg-white p-4">
@@ -643,7 +647,7 @@ export default function ReportPage() {
           <div>
             <label className={labelCls}>이번 달 결론 — 맨 위 10초 요약 (성과·리스크 한 줄)</label>
             <textarea
-              rows={2}
+              rows={7}
               className={inputCls}
               value={draft.headline ?? ""}
               onChange={(e) => setField("headline", e.target.value)}
@@ -652,7 +656,7 @@ export default function ReportPage() {
           <div>
             <label className={labelCls}>경영진 결정·지원 필요 (1~2줄, 줄바꿈 가능)</label>
             <textarea
-              rows={2}
+              rows={7}
               className={inputCls}
               value={draft.decisions ?? ""}
               onChange={(e) => setField("decisions", e.target.value)}
@@ -661,7 +665,7 @@ export default function ReportPage() {
           <div>
             <label className={labelCls}>WHY — 이번 달 상황·배경</label>
             <textarea
-              rows={2}
+              rows={7}
               className={inputCls}
               value={draft.why}
               onChange={(e) => setField("why", e.target.value)}
@@ -670,7 +674,7 @@ export default function ReportPage() {
           <div>
             <label className={labelCls}>HOW — 어떻게 대응했나</label>
             <textarea
-              rows={2}
+              rows={7}
               className={inputCls}
               value={draft.how}
               onChange={(e) => setField("how", e.target.value)}
@@ -679,7 +683,7 @@ export default function ReportPage() {
           <div>
             <label className={labelCls}>WHAT — 결과·다음 달 계획</label>
             <textarea
-              rows={2}
+              rows={7}
               className={inputCls}
               value={draft.what}
               onChange={(e) => setField("what", e.target.value)}
@@ -689,7 +693,7 @@ export default function ReportPage() {
             <div>
               <label className={labelCls}>링고 코멘트 (선택)</label>
               <textarea
-                rows={2}
+                rows={6}
                 className={inputCls}
                 value={draft.lingoNote ?? ""}
                 onChange={(e) => setField("lingoNote", e.target.value)}
@@ -698,7 +702,7 @@ export default function ReportPage() {
             <div>
               <label className={labelCls}>뉴로 코멘트 (선택)</label>
               <textarea
-                rows={2}
+                rows={6}
                 className={inputCls}
                 value={draft.neuroNote ?? ""}
                 onChange={(e) => setField("neuroNote", e.target.value)}
@@ -707,7 +711,7 @@ export default function ReportPage() {
             <div>
               <label className={labelCls}>무료 채널 게시 코멘트 (선택)</label>
               <textarea
-                rows={2}
+                rows={6}
                 className={inputCls}
                 value={draft.threadNote ?? ""}
                 onChange={(e) => setField("threadNote", e.target.value)}
