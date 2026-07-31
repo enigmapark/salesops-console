@@ -178,6 +178,7 @@ export default function ReportPage() {
               (t) => t.month === month && t.product === product,
             );
             const pctOf = (a: number, t: number) => (t > 0 ? `${Math.round((a / t) * 100)}%` : "–");
+            const cumDeals = revenueTotals(data, product).deals; // 지금까지 누적 계약(체결)
             return (
               <div key={product} className="rounded-lg border border-zinc-200 bg-zinc-50 p-3">
                 <p className="mb-2 text-xs font-semibold text-zinc-600">
@@ -185,6 +186,9 @@ export default function ReportPage() {
                   <span className="font-normal text-zinc-400">
                     {product === "링고" ? "인터넷신문 CMS" : "AI 광고"}
                   </span>
+                  {cumDeals > 0 && (
+                    <span className="ml-1.5 font-normal text-zinc-400">· 누적 계약 {cumDeals}건</span>
+                  )}
                 </p>
                 <div className="grid grid-cols-2 gap-2.5">
                   <KpiCard
@@ -296,9 +300,20 @@ export default function ReportPage() {
 
       {/* 매출 상세 — 제품별 월별 결제 원장 (실데이터, 데이터 있는 제품만 표시) */}
       {(["링고", "뉴로"] as Product[]).map((product) => {
-        const rows = revenuesFor(data, product);
+        // 매출 발생 행만 표시 (카운트 전용 placeholder 행 제외)
+        const rows = revenuesFor(data, product).filter(
+          (r) => r.actualPayment > 0 || r.contractAmount > 0,
+        );
         if (rows.length === 0) return null;
-        const totals = revenueTotals(data, product);
+        const totals = rows.reduce(
+          (a, r) => ({
+            deals: a.deals + r.deals,
+            contractAmount: a.contractAmount + r.contractAmount,
+            actualPayment: a.actualPayment + r.actualPayment,
+          }),
+          { deals: 0, contractAmount: 0, actualPayment: 0 },
+        );
+        const showAmount = product === "링고"; // 뉴로는 계약서 없이 운영 → 계약금액 열 제외
         return (
           <section key={`rev-${product}`} className="rounded-xl border border-zinc-200 bg-white p-4">
             <h2 className="mb-3 text-sm font-semibold">
@@ -311,7 +326,7 @@ export default function ReportPage() {
                   <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500">
                     <th className="py-2 font-medium">월</th>
                     <th className="py-2 text-right font-medium">계약 건수</th>
-                    <th className="py-2 text-right font-medium">계약금액</th>
+                    {showAmount && <th className="py-2 text-right font-medium">계약금액</th>}
                     <th className="py-2 text-right font-medium">실 결제</th>
                   </tr>
                 </thead>
@@ -325,9 +340,11 @@ export default function ReportPage() {
                       >
                         <td className="py-1.5">{r.month}</td>
                         <td className="py-1.5 text-right tabular-nums">{fmtNum(r.deals)}건</td>
-                        <td className="py-1.5 text-right tabular-nums">
-                          {r.contractAmount > 0 ? fmtWon(r.contractAmount) : "–"}
-                        </td>
+                        {showAmount && (
+                          <td className="py-1.5 text-right tabular-nums">
+                            {r.contractAmount > 0 ? fmtWon(r.contractAmount) : "–"}
+                          </td>
+                        )}
                         <td className="py-1.5 text-right tabular-nums">{fmtWon(r.actualPayment)}</td>
                       </tr>
                     );
@@ -346,7 +363,8 @@ export default function ReportPage() {
               </table>
             </div>
             <p className="mt-2 text-[11px] text-zinc-400">
-              선택한 달({month})은 파란 강조 · 실 결제 = 실제 입금액(계약금액과 다를 수 있음: 할인·미납·분할 등)
+              선택한 달({month})은 파란 강조 · 실 결제 = 실제 입금액
+              {showAmount && " (계약금액과 다를 수 있음: 할인·미납·분할 등)"}
             </p>
             <div className="mt-4 border-t border-zinc-100 pt-4">
               <p className="mb-1 text-xs font-medium text-zinc-500">
