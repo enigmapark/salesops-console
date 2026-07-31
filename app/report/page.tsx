@@ -443,7 +443,8 @@ export default function ReportPage() {
                 <KpiCard
                   label="광고비 (소진)"
                   value={spendBy(product) > 0 ? fmtWon(spendBy(product)) : "0원"}
-                  sub="해당 월 채널 퍼널 합계"
+                  sub="해당 월 매체 광고비 합계"
+                  small
                 />
                 <KpiCard
                   label="코호트 전환율"
