@@ -647,7 +647,7 @@ export default function ReportPage() {
           <div>
             <label className={labelCls}>이번 달 결론 — 맨 위 10초 요약 (성과·리스크 한 줄)</label>
             <textarea
-              rows={7}
+              rows={5}
               className={inputCls}
               value={draft.headline ?? ""}
               onChange={(e) => setField("headline", e.target.value)}
@@ -656,7 +656,7 @@ export default function ReportPage() {
           <div>
             <label className={labelCls}>경영진 결정·지원 필요 (1~2줄, 줄바꿈 가능)</label>
             <textarea
-              rows={7}
+              rows={5}
               className={inputCls}
               value={draft.decisions ?? ""}
               onChange={(e) => setField("decisions", e.target.value)}
@@ -665,7 +665,7 @@ export default function ReportPage() {
           <div>
             <label className={labelCls}>WHY — 이번 달 상황·배경</label>
             <textarea
-              rows={7}
+              rows={5}
               className={inputCls}
               value={draft.why}
               onChange={(e) => setField("why", e.target.value)}
@@ -674,7 +674,7 @@ export default function ReportPage() {
           <div>
             <label className={labelCls}>HOW — 어떻게 대응했나</label>
             <textarea
-              rows={7}
+              rows={5}
               className={inputCls}
               value={draft.how}
               onChange={(e) => setField("how", e.target.value)}
@@ -683,7 +683,7 @@ export default function ReportPage() {
           <div>
             <label className={labelCls}>WHAT — 결과·다음 달 계획</label>
             <textarea
-              rows={7}
+              rows={5}
               className={inputCls}
               value={draft.what}
               onChange={(e) => setField("what", e.target.value)}
@@ -693,7 +693,7 @@ export default function ReportPage() {
             <div>
               <label className={labelCls}>링고 코멘트 (선택)</label>
               <textarea
-                rows={6}
+                rows={4}
                 className={inputCls}
                 value={draft.lingoNote ?? ""}
                 onChange={(e) => setField("lingoNote", e.target.value)}
@@ -702,7 +702,7 @@ export default function ReportPage() {
             <div>
               <label className={labelCls}>뉴로 코멘트 (선택)</label>
               <textarea
-                rows={6}
+                rows={4}
                 className={inputCls}
                 value={draft.neuroNote ?? ""}
                 onChange={(e) => setField("neuroNote", e.target.value)}
@@ -711,7 +711,7 @@ export default function ReportPage() {
             <div>
               <label className={labelCls}>무료 채널 게시 코멘트 (선택)</label>
               <textarea
-                rows={6}
+                rows={4}
                 className={inputCls}
                 value={draft.threadNote ?? ""}
                 onChange={(e) => setField("threadNote", e.target.value)}
