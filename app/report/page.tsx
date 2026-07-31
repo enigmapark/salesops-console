@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { KpiCard } from "@/components/KpiCard";
-import { dealRate, isFreeChannel, safeDiv } from "@/lib/channel";
+import { safeDiv } from "@/lib/channel";
 import { contractsInMonth, newMrrInMonth, upsellsInMonth } from "@/lib/exec";
 import { fmtNum, fmtPct, fmtWon } from "@/lib/format";
 import { revenueOf, revenueTotals, revenuesFor } from "@/lib/revenue";
+import { AD_LABEL, adCplMonthly, adSpendInMonth, adTotals, monthlyAdStatsFor } from "@/lib/ads";
 import { RevenueTrendChart } from "@/components/charts/RevenueTrendChart";
 import {
   availableMonths,
@@ -71,9 +72,8 @@ export default function ReportPage() {
   );
   const monthDealCount = monthDealLeads.length;
 
-  // 제품별 광고비 (해당 월 채널 퍼널의 소진 금액 합)
-  const spendBy = (p: Product) =>
-    report.funnels.filter((f) => f.product === p).reduce((s, f) => s + f.spend, 0);
+  // 제품별 광고비 (해당 월 매체별 광고 성과의 소진 금액 합 — 실데이터)
+  const spendBy = (p: Product) => adSpendInMonth(data, month, p);
   const totalNewLeads = report.lingo.newLeads + report.neuro.newLeads;
 
   // 당월 계약(계약일 기준) — 유입 월과 무관하게 이 달에 계약된 고객 (건수는 업셀 제외)
@@ -256,7 +256,7 @@ export default function ReportPage() {
                 <td className="py-2.5 text-right tabular-nums">{fmtWon(spendBy("링고"))}</td>
                 <td className="py-2.5 text-right tabular-nums">{fmtWon(spendBy("뉴로"))}</td>
                 <td className="py-2.5 text-right font-semibold tabular-nums">
-                  {fmtWon(report.channelTotals.spend)}
+                  {fmtWon(spendBy("링고") + spendBy("뉴로"))}
                 </td>
               </tr>
               <tr className="border-b border-zinc-100">
@@ -516,71 +516,87 @@ export default function ReportPage() {
         </div>
       )}
 
-      {/* 채널별 상세 — 링고 / 뉴로 / 공통 구분 (퍼널 별도 추적 소스 — CRM 리드/계약과 다를 수 있음) */}
-      <section className="rounded-xl border border-amber-200 bg-amber-50/40 p-4">
-        <h2 className="mb-1 text-sm font-semibold">
-          {month} 채널별 계약전환율{" "}
-          <span className="text-xs font-normal text-amber-700">
-            (퍼널 별도 추적 — CRM 계약수와 기준 다름)
-          </span>
-        </h2>
-        <p className="mb-3 text-[11px] text-amber-700/80">
-          이 표는 채널 퍼널에 별도로 입력된 값이라, 위 &ldquo;당월 계약&rdquo;(실제 리드 기준)과 숫자가 다를 수
-          있습니다. 값이 최신인지 확인이 필요합니다.
-        </p>
-        {report.funnels.length === 0 ? (
-          <p className="py-4 text-center text-sm text-zinc-400">이 달의 채널 데이터가 없습니다.</p>
-        ) : (
+      {/* 월간 광고 성과 — 매체별 (실데이터: 광고비·노출·클릭·문의·CPL) */}
+      {(["링고", "뉴로"] as Product[]).some((p) => monthlyAdStatsFor(data, month, p).length > 0) && (
+        <section className="rounded-xl border border-zinc-200 bg-white p-4">
+          <h2 className="mb-3 text-sm font-semibold">
+            {month} 월간 광고 성과{" "}
+            <span className="text-xs font-normal text-zinc-400">(매체별 · 광고비·문의·CPL)</span>
+          </h2>
           <div className="grid gap-4 lg:grid-cols-2">
-            {(["링고", "뉴로", "공통"] as const).map((product) => {
-              const rows = report.funnels.filter((f) => (f.product ?? "공통") === product);
+            {(["링고", "뉴로"] as Product[]).map((product) => {
+              const rows = monthlyAdStatsFor(data, month, product);
               if (rows.length === 0) return null;
+              const t = adTotals(rows);
               return (
-                <div key={product} className={product === "공통" ? "lg:col-span-2" : ""}>
+                <div key={product}>
                   <h3 className="mb-1.5 text-xs font-semibold text-zinc-500">
-                    {product === "공통" ? "공통 (링고·뉴로 공용)" : product}
+                    {product}{" "}
+                    <span className="font-normal text-zinc-400">
+                      광고비 {fmtWon(t.spend)} · 문의 {t.inquiries}건
+                    </span>
                   </h3>
                   <div className="overflow-x-auto">
-                    <table className="w-full min-w-[420px] text-sm">
+                    <table className="w-full min-w-[460px] text-sm">
                       <thead>
                         <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500">
-                          <th className="py-2 font-medium">채널</th>
-                          <th className="py-2 text-right font-medium">리드</th>
-                          <th className="py-2 text-right font-medium">계약</th>
-                          <th className="py-2 text-right font-medium">전환율</th>
+                          <th className="py-2 font-medium">매체</th>
                           <th className="py-2 text-right font-medium">광고비</th>
+                          <th className="py-2 text-right font-medium">노출</th>
+                          <th className="py-2 text-right font-medium">클릭</th>
+                          <th className="py-2 text-right font-medium">문의</th>
+                          <th className="py-2 text-right font-medium">CPL</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {rows.map((f) => (
-                          <tr key={f.id} className="border-b border-zinc-100 last:border-0">
-                            <td className="py-2">
-                              {f.source}
-                              {isFreeChannel(f) && (
-                                <span className="ml-1 rounded-full border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">
-                                  무료
-                                </span>
-                              )}
-                            </td>
-                            <td className="py-2 text-right tabular-nums">{fmtNum(f.leads)}</td>
-                            <td className="py-2 text-right tabular-nums">{fmtNum(f.deals)}</td>
-                            <td className="py-2 text-right font-semibold tabular-nums">
-                              {fmtPct(dealRate(f))}
-                            </td>
-                            <td className="py-2 text-right tabular-nums text-zinc-500">
-                              {fmtWon(f.spend)}
-                            </td>
-                          </tr>
-                        ))}
+                        {rows.map((a) => {
+                          const cpl = adCplMonthly(a);
+                          return (
+                            <tr key={a.id} className="border-b border-zinc-100 last:border-0">
+                              <td className="py-2">
+                                {AD_LABEL[a.source]}
+                                {a.note && (
+                                  <span className="ml-1 text-[10px] text-amber-600">({a.note})</span>
+                                )}
+                              </td>
+                              <td className="py-2 text-right tabular-nums">{fmtWon(a.spend)}</td>
+                              <td className="py-2 text-right tabular-nums text-zinc-500">
+                                {fmtNum(a.impressions)}
+                              </td>
+                              <td className="py-2 text-right tabular-nums text-zinc-500">
+                                {fmtNum(a.clicks)}
+                              </td>
+                              <td className="py-2 text-right tabular-nums">{a.inquiries}건</td>
+                              <td className="py-2 text-right tabular-nums">
+                                {cpl !== null ? fmtWon(cpl) : "–"}
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
+                      <tfoot>
+                        <tr className="border-t-2 border-zinc-300 font-semibold">
+                          <td className="py-2">소계</td>
+                          <td className="py-2 text-right tabular-nums">{fmtWon(t.spend)}</td>
+                          <td className="py-2 text-right tabular-nums">{fmtNum(t.impressions)}</td>
+                          <td className="py-2 text-right tabular-nums">{fmtNum(t.clicks)}</td>
+                          <td className="py-2 text-right tabular-nums">{t.inquiries}건</td>
+                          <td className="py-2 text-right tabular-nums">
+                            {t.inquiries > 0 ? fmtWon(Math.round(t.spend / t.inquiries)) : "–"}
+                          </td>
+                        </tr>
+                      </tfoot>
                     </table>
                   </div>
                 </div>
               );
             })}
           </div>
-        )}
-      </section>
+          <p className="mt-2 text-[11px] text-zinc-400">
+            CPL = 광고비 ÷ 광고 기여 문의 · GPT는 전환 추적 없음(미측정) · 네이버는 오가닉 가능성으로 문의 0 처리
+          </p>
+        </section>
+      )}
 
       {/* WHY-HOW-WHAT 코멘트 */}
       <section className="rounded-xl border border-zinc-200 bg-white p-4">

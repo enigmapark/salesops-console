@@ -180,6 +180,19 @@ export interface MonthlyRevenue {
   otherOptions: number; // 기타 옵션비
 }
 
+// 월별 광고 성과 (매체별 — 월 단위 최종 집계. 광고비·CAC·월간 광고 성과 표의 원천)
+export interface MonthlyAdStat {
+  id: string; // `${month}:${product}:${source}`
+  month: string; // YYYY-MM
+  product: Product;
+  source: "메타광고" | "네이버광고" | "GPT광고" | "구글광고";
+  spend: number;
+  impressions: number;
+  clicks: number;
+  inquiries: number; // 광고 기여 실문의/리드
+  note?: string; // 비고 (예: 오가닉 가능·미측정)
+}
+
 // 월별 목표 (제품별 — 실적 대비 달성률 계산용. 담당자 입력)
 export interface MonthlyTarget {
   id: string; // `${month}:${product}`
@@ -224,5 +237,6 @@ export interface AppData {
   monthlyForecasts: MonthlyForecast[];
   monthlyRevenues: MonthlyRevenue[];
   monthlyTargets: MonthlyTarget[];
+  monthlyAdStats: MonthlyAdStat[];
   lastUpdated?: string; // 마지막 데이터 갱신 시각 (ISO) — 보고 화면 "최종 업데이트"용
 }
