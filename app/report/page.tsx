@@ -640,10 +640,66 @@ export default function ReportPage() {
         </section>
       )}
 
-      {/* WHY-HOW-WHAT 코멘트 */}
-      <section className="rounded-xl border border-zinc-200 bg-white p-4">
-        <h2 className="mb-3 text-sm font-semibold">코멘트 (결론 · WHY · HOW · WHAT)</h2>
-        <div className="space-y-3">
+      {/* 코멘트 — 읽기용 (색상 구분 카드) */}
+      {(() => {
+        const cmt = data.reportComments.find((c) => c.month === month);
+        if (
+          !cmt ||
+          (!cmt.why && !cmt.how && !cmt.what && !cmt.lingoNote && !cmt.neuroNote && !cmt.threadNote)
+        )
+          return null;
+        const rows = [
+          { label: "WHY", desc: "상황·배경", text: cmt.why, badge: "bg-amber-500" },
+          { label: "HOW", desc: "대응", text: cmt.how, badge: "bg-blue-500" },
+          { label: "WHAT", desc: "결과·다음 달", text: cmt.what, badge: "bg-emerald-600" },
+        ].filter((r) => r.text);
+        const notes = [
+          { label: "링고", text: cmt.lingoNote, cls: "border-indigo-200 bg-indigo-50/60 text-indigo-900" },
+          { label: "뉴로", text: cmt.neuroNote, cls: "border-amber-200 bg-amber-50/60 text-amber-900" },
+          { label: "무료 채널", text: cmt.threadNote, cls: "border-emerald-200 bg-emerald-50/60 text-emerald-900" },
+        ].filter((n) => n.text);
+        return (
+          <section className="rounded-xl border border-zinc-200 bg-white p-4">
+            <h2 className="mb-3 text-sm font-semibold">{month} 코멘트</h2>
+            <div className="space-y-2.5">
+              {rows.map((r) => (
+                <div key={r.label} className="flex gap-3">
+                  <span
+                    className={`mt-0.5 h-fit shrink-0 rounded-md px-2 py-0.5 text-[11px] font-bold text-white ${r.badge}`}
+                  >
+                    {r.label}
+                  </span>
+                  <p className="text-sm leading-relaxed text-zinc-700">
+                    <span className="mr-1 text-xs font-medium text-zinc-400">{r.desc}</span>
+                    {r.text}
+                  </p>
+                </div>
+              ))}
+            </div>
+            {notes.length > 0 && (
+              <div className="mt-4 grid gap-2.5 sm:grid-cols-3">
+                {notes.map((n) => (
+                  <div
+                    key={n.label}
+                    className={`rounded-lg border p-3 text-xs leading-relaxed ${n.cls}`}
+                  >
+                    <p className="mb-1 text-[11px] font-bold">{n.label}</p>
+                    <p>{n.text}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        );
+      })()}
+
+      {/* WHY-HOW-WHAT 코멘트 편집 (접이식) */}
+      <section className="rounded-xl border border-zinc-200 bg-white p-4 print:hidden">
+        <details>
+          <summary className="cursor-pointer select-none text-sm font-semibold text-zinc-600">
+            ✏️ 코멘트 편집 (펼쳐서 수정)
+          </summary>
+          <div className="mt-3 space-y-3">
           <div>
             <label className={labelCls}>이번 달 결론 — 맨 위 10초 요약 (성과·리스크 한 줄)</label>
             <textarea
@@ -733,6 +789,7 @@ export default function ReportPage() {
             </button>
           </div>
         </div>
+        </details>
       </section>
 
       {/* 복사용 텍스트 */}
