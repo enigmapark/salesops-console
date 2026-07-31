@@ -547,7 +547,7 @@ export default function ReportPage() {
             {month} 월간 광고 성과{" "}
             <span className="text-xs font-normal text-zinc-400">(매체별 · 광고비·문의·CPL)</span>
           </h2>
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="space-y-6">
             {(["링고", "뉴로"] as Product[]).map((product) => {
               const rows = monthlyAdStatsFor(data, month, product);
               if (rows.length === 0) return null;
@@ -561,7 +561,7 @@ export default function ReportPage() {
                     </span>
                   </h3>
                   <div className="overflow-x-auto">
-                    <table className="w-full min-w-[460px] text-sm">
+                    <table className="w-full min-w-[520px] text-sm">
                       <thead>
                         <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500">
                           <th className="py-2 font-medium">매체</th>
@@ -577,21 +577,25 @@ export default function ReportPage() {
                           const cpl = adCplMonthly(a);
                           return (
                             <tr key={a.id} className="border-b border-zinc-100 last:border-0">
-                              <td className="py-2">
-                                {AD_LABEL[a.source]}
+                              <td className="py-2 align-top">
+                                <span className="whitespace-nowrap">{AD_LABEL[a.source]}</span>
                                 {a.note && (
                                   <span className="ml-1 text-[10px] text-amber-600">({a.note})</span>
                                 )}
                               </td>
-                              <td className="py-2 text-right tabular-nums">{fmtWon(a.spend)}</td>
-                              <td className="py-2 text-right tabular-nums text-zinc-500">
+                              <td className="whitespace-nowrap py-2 text-right tabular-nums">
+                                {fmtWon(a.spend)}
+                              </td>
+                              <td className="whitespace-nowrap py-2 text-right tabular-nums text-zinc-500">
                                 {fmtNum(a.impressions)}
                               </td>
-                              <td className="py-2 text-right tabular-nums text-zinc-500">
+                              <td className="whitespace-nowrap py-2 text-right tabular-nums text-zinc-500">
                                 {fmtNum(a.clicks)}
                               </td>
-                              <td className="py-2 text-right tabular-nums">{a.inquiries}건</td>
-                              <td className="py-2 text-right tabular-nums">
+                              <td className="whitespace-nowrap py-2 text-right tabular-nums">
+                                {a.inquiries}건
+                              </td>
+                              <td className="whitespace-nowrap py-2 text-right tabular-nums">
                                 {cpl !== null ? fmtWon(cpl) : "–"}
                               </td>
                             </tr>
@@ -601,11 +605,19 @@ export default function ReportPage() {
                       <tfoot>
                         <tr className="border-t-2 border-zinc-300 font-semibold">
                           <td className="py-2">소계</td>
-                          <td className="py-2 text-right tabular-nums">{fmtWon(t.spend)}</td>
-                          <td className="py-2 text-right tabular-nums">{fmtNum(t.impressions)}</td>
-                          <td className="py-2 text-right tabular-nums">{fmtNum(t.clicks)}</td>
-                          <td className="py-2 text-right tabular-nums">{t.inquiries}건</td>
-                          <td className="py-2 text-right tabular-nums">
+                          <td className="whitespace-nowrap py-2 text-right tabular-nums">
+                            {fmtWon(t.spend)}
+                          </td>
+                          <td className="whitespace-nowrap py-2 text-right tabular-nums">
+                            {fmtNum(t.impressions)}
+                          </td>
+                          <td className="whitespace-nowrap py-2 text-right tabular-nums">
+                            {fmtNum(t.clicks)}
+                          </td>
+                          <td className="whitespace-nowrap py-2 text-right tabular-nums">
+                            {t.inquiries}건
+                          </td>
+                          <td className="whitespace-nowrap py-2 text-right tabular-nums">
                             {t.inquiries > 0 ? fmtWon(Math.round(t.spend / t.inquiries)) : "–"}
                           </td>
                         </tr>
@@ -617,7 +629,7 @@ export default function ReportPage() {
             })}
           </div>
           <p className="mt-2 text-[11px] text-zinc-400">
-            CPL = 광고비 ÷ 광고 기여 문의 · GPT는 전환 추적 없음(미측정) · 네이버는 오가닉 가능성으로 문의 0 처리
+            CPL = 광고비 ÷ 광고 기여 문의 · GPT는 전환 추적 없음(미측정) · 네이버는 파워링크/오가닉 구분 불명
           </p>
         </section>
       )}
