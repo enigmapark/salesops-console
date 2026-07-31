@@ -377,9 +377,11 @@ export default function ReportPage() {
                   <tr className="border-t-2 border-zinc-300 font-semibold">
                     <td className="py-2">총계</td>
                     <td className="py-2 text-right tabular-nums">{fmtNum(totals.deals)}건</td>
-                    <td className="py-2 text-right tabular-nums">
-                      {totals.contractAmount > 0 ? fmtWon(totals.contractAmount) : "–"}
-                    </td>
+                    {showAmount && (
+                      <td className="py-2 text-right tabular-nums">
+                        {totals.contractAmount > 0 ? fmtWon(totals.contractAmount) : "–"}
+                      </td>
+                    )}
                     <td className="py-2 text-right tabular-nums">{fmtWon(totals.actualPayment)}</td>
                   </tr>
                 </tfoot>
