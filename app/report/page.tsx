@@ -138,6 +138,29 @@ export default function ReportPage() {
 
       <h2 className="hidden text-lg font-bold print:block">[Lingo·Neuro 월간 보고] {month}</h2>
 
+      {/* 이번 달 결론 — 맨 위 10초 요약 (성과·리스크·결정 필요) */}
+      {(() => {
+        const cmt = data.reportComments.find((c) => c.month === month);
+        if (!cmt?.headline && !cmt?.decisions) return null;
+        return (
+          <section className="rounded-xl border-2 border-indigo-600 bg-indigo-50/40 p-4">
+            <h2 className="mb-1.5 text-sm font-bold text-indigo-900">
+              이번 달 결론{" "}
+              <span className="text-xs font-normal text-indigo-400">{month} · 10초 요약</span>
+            </h2>
+            {cmt.headline && (
+              <p className="text-sm leading-relaxed text-zinc-800">{cmt.headline}</p>
+            )}
+            {cmt.decisions && (
+              <div className="mt-2 rounded-md border border-indigo-200 bg-white px-3 py-2 text-sm text-zinc-700">
+                <span className="font-semibold text-indigo-700">경영진 결정·지원 필요</span>
+                <div className="mt-1 whitespace-pre-line">{cmt.decisions}</div>
+              </div>
+            )}
+          </section>
+        );
+      })()}
+
       {/* 월간 Sales 현황 — 한 장 요약 (제품별: 돈·효율·전망) */}
       <section className="rounded-xl border-2 border-zinc-900 bg-white p-4">
         <h2 className="mb-1 text-sm font-bold">
@@ -600,8 +623,26 @@ export default function ReportPage() {
 
       {/* WHY-HOW-WHAT 코멘트 */}
       <section className="rounded-xl border border-zinc-200 bg-white p-4">
-        <h2 className="mb-3 text-sm font-semibold">코멘트 (WHY · HOW · WHAT)</h2>
+        <h2 className="mb-3 text-sm font-semibold">코멘트 (결론 · WHY · HOW · WHAT)</h2>
         <div className="space-y-3">
+          <div>
+            <label className={labelCls}>이번 달 결론 — 맨 위 10초 요약 (성과·리스크 한 줄)</label>
+            <textarea
+              rows={2}
+              className={inputCls}
+              value={draft.headline ?? ""}
+              onChange={(e) => setField("headline", e.target.value)}
+            />
+          </div>
+          <div>
+            <label className={labelCls}>경영진 결정·지원 필요 (1~2줄, 줄바꿈 가능)</label>
+            <textarea
+              rows={2}
+              className={inputCls}
+              value={draft.decisions ?? ""}
+              onChange={(e) => setField("decisions", e.target.value)}
+            />
+          </div>
           <div>
             <label className={labelCls}>WHY — 이번 달 상황·배경</label>
             <textarea
