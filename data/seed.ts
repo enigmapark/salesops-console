@@ -341,4 +341,5 @@ export const seedData: AppData = {
   monthlyRevenues: [],
   monthlyTargets: [],
   monthlyAdStats: [],
+  monthlyPnls: [],
 };

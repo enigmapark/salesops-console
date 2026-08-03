@@ -8,6 +8,7 @@ import { fmtNum, fmtPct, fmtWon } from "@/lib/format";
 import { revenueOf, revenueTotals, revenuesFor } from "@/lib/revenue";
 import { AD_LABEL, adCplMonthly, adSpendInMonth, adTotals, monthlyAdStatsFor } from "@/lib/ads";
 import { RevenueDetailCard } from "@/components/RevenueDetailCard";
+import { PnlSection } from "@/components/PnlSection";
 import {
   availableMonths,
   buildCopyText,
@@ -561,6 +562,14 @@ export default function ReportPage() {
           </p>
         </section>
       )}
+
+      {/* 뉴로 손익·원가 — 개발팀 소유 (세일즈 섹션과 분리) */}
+      {(() => {
+        const pnl = (data.monthlyPnls ?? []).find(
+          (p) => p.month === month && p.product === "뉴로",
+        );
+        return pnl ? <PnlSection pnl={pnl} /> : null;
+      })()}
 
       {/* 코멘트 — 읽기용 (색상 구분 카드) */}
       {(() => {

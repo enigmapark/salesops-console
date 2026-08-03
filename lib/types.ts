@@ -195,6 +195,22 @@ export interface MonthlyAdStat {
   note?: string; // 비고 (예: 오가닉 가능·미측정)
 }
 
+// 월별 손익·원가 (제품별 — 개발팀 소유. 매출·원가·마진 요약)
+export interface MonthlyPnl {
+  id: string; // `${month}:${product}`
+  month: string; // YYYY-MM
+  product: Product;
+  revenueSupply: number; // 매출 공급가(VAT 제외)
+  revenueBilled: number; // 청구액(VAT 포함)
+  totalCost: number; // 총원가
+  tokenCost: number; // Anthropic 토큰 원가
+  awsCost: number; // AWS 인프라
+  gcpCost: number; // GCP 인프라
+  unbilledCost: number; // 미청구 원가(내부·테스트 등)
+  subscribedMarginRate?: number; // 구독중 조직 마진율 (%) — 선택
+  note?: string;
+}
+
 // 월별 목표 (제품별 — 실적 대비 달성률 계산용. 담당자 입력)
 export interface MonthlyTarget {
   id: string; // `${month}:${product}`
@@ -240,5 +256,6 @@ export interface AppData {
   monthlyRevenues: MonthlyRevenue[];
   monthlyTargets: MonthlyTarget[];
   monthlyAdStats: MonthlyAdStat[];
+  monthlyPnls: MonthlyPnl[];
   lastUpdated?: string; // 마지막 데이터 갱신 시각 (ISO) — 보고 화면 "최종 업데이트"용
 }

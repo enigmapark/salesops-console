@@ -47,6 +47,7 @@ function migrateV1(parsed: Partial<AppData>): AppData {
     monthlyRevenues: parsed.monthlyRevenues ?? [],
     monthlyTargets: parsed.monthlyTargets ?? [],
     monthlyAdStats: parsed.monthlyAdStats ?? [],
+    monthlyPnls: parsed.monthlyPnls ?? [],
     lastUpdated: parsed.lastUpdated,
   };
 }
@@ -80,6 +81,7 @@ export function normalizeAppData(parsed: Partial<AppData> | null | undefined): A
     monthlyRevenues: p.monthlyRevenues ?? [],
     monthlyTargets: p.monthlyTargets ?? [],
     monthlyAdStats: p.monthlyAdStats ?? [],
+    monthlyPnls: p.monthlyPnls ?? [],
     lastUpdated: p.lastUpdated,
   };
 }
@@ -116,6 +118,7 @@ export function loadAppData(): AppData {
         monthlyRevenues: parsed.monthlyRevenues ?? [],
         monthlyTargets: parsed.monthlyTargets ?? [],
         monthlyAdStats: parsed.monthlyAdStats ?? [],
+        monthlyPnls: parsed.monthlyPnls ?? [],
         lastUpdated: parsed.lastUpdated,
       };
       if (needFix) saveAppData(result);
