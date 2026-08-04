@@ -195,7 +195,18 @@ export interface MonthlyAdStat {
   note?: string; // 비고 (예: 오가닉 가능·미측정)
 }
 
-// 월별 손익·원가 (제품별 — 개발팀 소유. 매출·원가·마진 요약)
+// 손익 — 조직별 마진 행 (구독중 조직)
+export interface PnlOrgRow {
+  name: string;
+  plan?: string; // 플랜·결제수단
+  cost: number; // 원가
+  billed: number; // 청구액(VAT 포함)
+  supply: number; // 공급가
+  margin: number; // 마진
+  marginRate: number | null; // 마진율(%) — 공급가 0이면 null(—)
+}
+
+// 월별 손익·원가 (제품별 — 개발팀 소유. 매출·원가·마진 + 상세)
 export interface MonthlyPnl {
   id: string; // `${month}:${product}`
   month: string; // YYYY-MM
@@ -207,8 +218,36 @@ export interface MonthlyPnl {
   awsCost: number; // AWS 인프라
   gcpCost: number; // GCP 인프라
   unbilledCost: number; // 미청구 원가(내부·테스트 등)
-  subscribedMarginRate?: number; // 구독중 조직 마진율 (%) — 선택
+  subscribedMarginRate?: number; // 구독중 조직 마진율 (%)
+  // 상세 (선택)
+  orgCount?: number; // 전체 조직 수
+  requestCount?: number; // 요청 건수
+  tokenLabel?: string; // 토큰 수 표기 (예: "5.57억")
+  categoryCost?: { subscribed: number; internal: number; test: number; other: number }; // 토큰 원가 분류
+  orgs?: PnlOrgRow[]; // 구독중 조직별 마진
   note?: string;
+}
+
+// 링고 개발팀 월간 리뷰 (광고 운영 + 서버비·트래픽 — 개발팀 소유)
+export interface DevReview {
+  id: string; // `${month}:링고`
+  month: string; // YYYY-MM
+  product: Product;
+  // 광고 운영
+  adDailyTotal?: number; // 3매체 하루 실집행 합계
+  adChannels?: { name: string; daily: number; status?: string }[]; // 매체별 일 집행
+  adDirection?: string; // 세팅 방향 요약
+  adTopCreatives?: { label: string; metric: string }[]; // 인기 소재
+  adTargetCpa?: string; // 실측 문의당 비용
+  adDiscussion?: string; // 논의 사항
+  // 서버비·트래픽
+  serverCost?: number; // 실질 서버비
+  serverCostMoM?: number; // 전월 대비 %
+  views?: number; // 조회수
+  viewsMoM?: number; // 전월 대비 %
+  costPer1000?: number; // 1,000뷰당 비용
+  revenueVsCostRate?: number; // 매출 대비 서버·AI 비용 %
+  infraNote?: string;
 }
 
 // 월별 목표 (제품별 — 실적 대비 달성률 계산용. 담당자 입력)
@@ -257,5 +296,6 @@ export interface AppData {
   monthlyTargets: MonthlyTarget[];
   monthlyAdStats: MonthlyAdStat[];
   monthlyPnls: MonthlyPnl[];
+  devReviews: DevReview[];
   lastUpdated?: string; // 마지막 데이터 갱신 시각 (ISO) — 보고 화면 "최종 업데이트"용
 }
