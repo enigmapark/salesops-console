@@ -308,25 +308,6 @@ export default function DevReviewPage() {
         </p>
       )}
 
-      {pnl && (
-        <>
-          <PnlSection pnl={pnl} />
-          <PnlDetail pnl={pnl} />
-          <FileAttach
-            label="뉴로 원본 자료"
-            fileUrl={pnl.sourceFileUrl}
-            fileName={pnl.sourceFileName}
-            onChange={(url, name) =>
-              update((d) => ({
-                ...d,
-                monthlyPnls: d.monthlyPnls.map((x) =>
-                  x.id === pnl.id ? { ...x, sourceFileUrl: url, sourceFileName: name } : x,
-                ),
-              }))
-            }
-          />
-        </>
-      )}
       {review && (
         <>
           <LingoAd r={review} />
@@ -341,6 +322,25 @@ export default function DevReviewPage() {
                 ...d,
                 devReviews: d.devReviews.map((x) =>
                   x.id === review.id ? { ...x, sourceFileUrl: url, sourceFileName: name } : x,
+                ),
+              }))
+            }
+          />
+        </>
+      )}
+      {pnl && (
+        <>
+          <PnlSection pnl={pnl} />
+          <PnlDetail pnl={pnl} />
+          <FileAttach
+            label="뉴로 원본 자료"
+            fileUrl={pnl.sourceFileUrl}
+            fileName={pnl.sourceFileName}
+            onChange={(url, name) =>
+              update((d) => ({
+                ...d,
+                monthlyPnls: d.monthlyPnls.map((x) =>
+                  x.id === pnl.id ? { ...x, sourceFileUrl: url, sourceFileName: name } : x,
                 ),
               }))
             }
