@@ -26,7 +26,9 @@ export function FileAttach({
     setUploading(true);
     setError(null);
     try {
-      const path = `${Date.now()}_${file.name.replace(/[^\w.\-가-힣]/g, "_")}`;
+      // Storage 키는 ASCII만 허용 — 한글 등은 _로 치환(원본 이름은 sourceFileName으로 별도 표시)
+      const safe = file.name.replace(/[^\w.-]/g, "_").replace(/_+/g, "_");
+      const path = `${Date.now()}_${safe}`;
       const { error: upErr } = await supabase.storage
         .from(BUCKET)
         .upload(path, file, { upsert: true, contentType: file.type || undefined });
