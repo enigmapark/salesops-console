@@ -115,7 +115,7 @@ function LingoAd({ r }: { r: DevReview }) {
     <section className="rounded-xl border-2 border-indigo-600 bg-white p-4">
       <h2 className="mb-1 text-sm font-bold">
         링고 광고 운영{" "}
-        <span className="text-xs font-normal text-indigo-400">개발팀 · {r.month} · 7월 말 재세팅</span>
+        <span className="text-xs font-normal text-indigo-400">개발팀 · {r.month} · 7월 29일 세팅</span>
       </h2>
       <p className="mb-3 text-[11px] text-zinc-400">
         측정 정비 → 캠페인 구조 재편 → 비용 통제 순서로 진행. 7/29 메타·네이버·구글 집행 시작.
