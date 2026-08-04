@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { PnlSection } from "@/components/PnlSection";
+import { FileAttach } from "@/components/FileAttach";
 import { fmtNum, fmtWon } from "@/lib/format";
 import { getToday } from "@/lib/today";
 import { useAppData } from "@/lib/use-app-data";
@@ -224,8 +225,46 @@ function LingoInfra({ r }: { r: DevReview }) {
   );
 }
 
+// 링고 크레딧 소진 분석 (고객사 AI 사용량)
+function LingoCredit({ r }: { r: DevReview }) {
+  if (r.creditTotal == null) return null;
+  return (
+    <section className="rounded-xl border border-zinc-200 bg-white p-4">
+      <h2 className="mb-1 text-sm font-bold">
+        링고 크레딧 소진 분석{" "}
+        <span className="text-xs font-normal text-zinc-400">고객사 AI 사용량 · 우상향 성장세</span>
+      </h2>
+      <p className="mb-3 text-[11px] text-zinc-400">
+        누적 {fmtNum(r.creditTotal)} 크레딧 · 최근월이 역대 최고.
+      </p>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Stat label="누적 소진" value={`${fmtNum(r.creditTotal)}`} sub="크레딧" />
+        {r.creditMonthAvg != null && (
+          <Stat label="월평균" value={`${fmtNum(r.creditMonthAvg)}`} sub="크레딧" />
+        )}
+        {r.creditLatest != null && (
+          <Stat
+            label="최근월 (역대 최고)"
+            value={`${fmtNum(r.creditLatest)}`}
+            sub={r.creditLatestMoM != null ? `전월 대비 +${r.creditLatestMoM}%` : undefined}
+            color="text-emerald-600"
+          />
+        )}
+        {r.creditTop3Rate != null && (
+          <Stat label="상위 3개사 집중도" value={`${r.creditTop3Rate}%`} sub="의존도 높음" color="text-amber-600" />
+        )}
+      </div>
+      <p className="mt-3 text-[11px] text-zinc-400">
+        {r.creditActiveOrgs && `월 활성 고객사 ${r.creditActiveOrgs} · `}
+        {r.creditTranslationRate != null && `유형별 번역 ${r.creditTranslationRate}% · `}
+        {r.creditNote}
+      </p>
+    </section>
+  );
+}
+
 export default function DevReviewPage() {
-  const { data } = useAppData();
+  const { data, update } = useAppData();
   const [month, setMonth] = useState<string | null>(null);
 
   if (!data) return <p className="py-16 text-center text-sm text-zinc-400">불러오는 중…</p>;
@@ -273,12 +312,39 @@ export default function DevReviewPage() {
         <>
           <PnlSection pnl={pnl} />
           <PnlDetail pnl={pnl} />
+          <FileAttach
+            label="뉴로 원본 자료"
+            fileUrl={pnl.sourceFileUrl}
+            fileName={pnl.sourceFileName}
+            onChange={(url, name) =>
+              update((d) => ({
+                ...d,
+                monthlyPnls: d.monthlyPnls.map((x) =>
+                  x.id === pnl.id ? { ...x, sourceFileUrl: url, sourceFileName: name } : x,
+                ),
+              }))
+            }
+          />
         </>
       )}
       {review && (
         <>
           <LingoAd r={review} />
           <LingoInfra r={review} />
+          <LingoCredit r={review} />
+          <FileAttach
+            label="링고 원본 자료"
+            fileUrl={review.sourceFileUrl}
+            fileName={review.sourceFileName}
+            onChange={(url, name) =>
+              update((d) => ({
+                ...d,
+                devReviews: d.devReviews.map((x) =>
+                  x.id === review.id ? { ...x, sourceFileUrl: url, sourceFileName: name } : x,
+                ),
+              }))
+            }
+          />
         </>
       )}
     </div>

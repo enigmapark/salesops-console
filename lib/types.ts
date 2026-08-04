@@ -226,6 +226,9 @@ export interface MonthlyPnl {
   categoryCost?: { subscribed: number; internal: number; test: number; other: number }; // 토큰 원가 분류
   orgs?: PnlOrgRow[]; // 구독중 조직별 마진
   note?: string;
+  // 원본 파일 첨부
+  sourceFileUrl?: string;
+  sourceFileName?: string;
 }
 
 // 링고 개발팀 월간 리뷰 (광고 운영 + 서버비·트래픽 — 개발팀 소유)
@@ -248,6 +251,18 @@ export interface DevReview {
   costPer1000?: number; // 1,000뷰당 비용
   revenueVsCostRate?: number; // 매출 대비 서버·AI 비용 %
   infraNote?: string;
+  // 크레딧 소진 (고객사 AI 사용량)
+  creditTotal?: number; // 누적 크레딧
+  creditMonthAvg?: number; // 월평균
+  creditLatest?: number; // 최근월 소진
+  creditLatestMoM?: number; // 최근월 전월 대비 %
+  creditTop3Rate?: number; // 상위 3개사 집중도 %
+  creditActiveOrgs?: string; // 월 활성 고객사 변화 (예: "4 → 49개사")
+  creditTranslationRate?: number; // 번역 유형 비중 %
+  creditNote?: string;
+  // 원본 파일 첨부
+  sourceFileUrl?: string;
+  sourceFileName?: string;
 }
 
 // 월별 목표 (제품별 — 실적 대비 달성률 계산용. 담당자 입력)
