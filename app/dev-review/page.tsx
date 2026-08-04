@@ -283,9 +283,7 @@ export default function DevReviewPage() {
       <div className="flex flex-wrap items-center gap-3">
         <div>
           <h1 className="text-xl font-bold">개발팀 리뷰</h1>
-          <p className="text-xs text-zinc-500">
-            뉴로 손익·원가 · 링고 광고 운영·서버비 (개발팀 소유 · 세일즈 보고와 분리)
-          </p>
+          <p className="text-xs text-zinc-500">뉴로 손익·원가 · 링고 광고 운영·서버비</p>
         </div>
         {months.length > 0 && (
           <select
