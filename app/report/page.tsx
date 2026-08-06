@@ -315,11 +315,13 @@ export default function ReportPage() {
           const mrrPer = deals > 0 ? newMrrInMonth(pLeads, month) / deals : null;
           const monthlyGP = mrrPer != null && gm != null ? mrrPer * (gm / 100) : null;
           const payback = cac != null && monthlyGP != null && monthlyGP > 0 ? cac / monthlyGP : null;
-          // LTV = 고객당 월 총이익 × 평균 유지 개월수(가정) — churn 데이터 확보 전 보수적 가정
-          const LIFETIME = 24;
+          // LTV = 고객당 월 총이익 × 유지 개월수
+          // 링고: 계약 12개월 약정 기준 / 뉴로: 약정 없음 → 보수적 12개월 가정(churn 데이터 확보 전)
+          const LIFETIME = 12;
+          const ltvBasis = product === "링고" ? "계약 12개월 기준" : "약정 없음 · 12개월 가정";
           const ltv = monthlyGP != null ? monthlyGP * LIFETIME : null;
           const ltvCac = ltv != null && cac != null && cac > 0 ? ltv / cac : null;
-          return { product, gm, cac, payback, ltv, ltvCac };
+          return { product, gm, cac, payback, ltv, ltvCac, ltvBasis };
         });
         if (!rows.some((r) => r.gm != null || r.cac != null)) return null;
         return (
@@ -359,16 +361,18 @@ export default function ReportPage() {
                       <p className="text-[10px] text-zinc-400">12개월↓ 건강</p>
                     </div>
                   </div>
-                  <div className="mt-2 flex items-center justify-between rounded-md border border-indigo-200 bg-indigo-50 px-2.5 py-1.5">
-                    <span className="text-[11px] font-semibold text-indigo-700">LTV / CAC</span>
-                    <span className="text-sm font-bold text-indigo-700">
-                      {r.ltvCac != null ? `${r.ltvCac.toFixed(1)} : 1` : "–"}
-                      {r.ltv != null && (
-                        <span className="ml-1.5 text-[10px] font-normal text-indigo-400">
-                          LTV ~{fmtWon(r.ltv)}
-                        </span>
-                      )}
-                    </span>
+                  <div className="mt-2 rounded-md border border-indigo-200 bg-indigo-50 px-2.5 py-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-semibold text-indigo-700">LTV / CAC</span>
+                      <span className="text-sm font-bold text-indigo-700">
+                        {r.ltvCac != null ? `${r.ltvCac.toFixed(1)} : 1` : "–"}
+                      </span>
+                    </div>
+                    {r.ltv != null && (
+                      <p className="mt-0.5 text-[10px] text-indigo-400">
+                        LTV ~{fmtWon(r.ltv)} · {r.ltvBasis}
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}
@@ -376,15 +380,16 @@ export default function ReportPage() {
             <p className="mt-3 rounded-md bg-zinc-50 p-2.5 text-[11px] leading-relaxed text-zinc-500">
               <b>해석</b> · SaaS 총이익률 벤치마크는 70~80%인데 AI 토큰·추론 원가로 우리는 42~44%로 낮다 —
               원가 절감·가격 인상이 수익 천장을 올리는 레버. 반면 CAC 회수기간이 짧아(구독 누적)
-              LTV/CAC가 건강 기준(3:1)을 크게 웃돈다(링고 6:1·뉴로 12.7:1) — 오히려 광고를 더 써도 되는
-              여력이 있다는 뜻(특히 뉴로는 회수 1.9개월). 단, 이 마진은 인건비·고정비 전이라 순이익은
-              아직(성장기 정상) — 규모로 고정비를 희석하는 국면.
+              LTV/CAC가 건강 기준(3:1)을 웃돈다 — 링고는 12개월 계약 기준 3.1:1, 뉴로는 약정이 없어
+              보수적(12개월 가정)으로 봐도 6.3:1로, 광고를 더 써도 되는 여력이 있다는 뜻(특히 뉴로는
+              회수 1.9개월). 단, 이 마진은 인건비·고정비 전이라 순이익은 아직(성장기 정상) — 규모로
+              고정비를 희석하는 국면.
             </p>
             <p className="mt-2 text-[11px] leading-relaxed text-zinc-400">
               <b>보는 법</b> · 총이익률은 <b>높을수록</b> 좋고 업계 평균(SaaS 70~80%)이 기준선 · CAC 회수기간은
               <b>짧을수록</b> 좋으며 12개월 이내면 건강한 편 · LTV/CAC는 <b>3:1 이상</b>이면 건강, 5:1을 넘으면
-              광고 여력이 큼(더 써도 됨). ※ LTV는 <b>평균 유지 24개월 가정</b>값이라, 실제 해지율(churn)이
-              쌓이면 조정된다.
+              광고 여력이 큼(더 써도 됨). ※ LTV 유지기간은 <b>링고=계약 12개월</b>, <b>뉴로=약정 없어 12개월
+              보수 가정</b>이라, 실제 해지율(churn)이 쌓이면 조정된다.
             </p>
           </section>
         );
