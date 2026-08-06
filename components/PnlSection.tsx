@@ -43,8 +43,7 @@ export function PnlSection({ pnl }: { pnl: MonthlyPnl }) {
       </h2>
       <p className="mb-3 text-[11px] text-zinc-400">
         매출 대비 원가율 {costRate.toFixed(1)}% · 원가의 {pct(pnl.tokenCost).toFixed(1)}%가 Anthropic
-        토큰(AI), 인프라는 {(pct(pnl.awsCost) + pct(pnl.gcpCost)).toFixed(1)}% · 마진은 인건비 제외(토큰·인프라
-        직접비 기준)
+        토큰(AI), 인프라는 {(pct(pnl.awsCost) + pct(pnl.gcpCost)).toFixed(1)}%
       </p>
 
       {/* 매출 → 원가 → 마진 */}

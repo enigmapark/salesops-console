@@ -173,11 +173,7 @@ export default function ReportPage() {
               }
               return (
                 <div className="mt-2 rounded-md border border-emerald-200 bg-white px-3 py-2 text-sm text-zinc-700">
-                  <span className="font-semibold text-emerald-700">수익성</span>{" "}
-                  <span className="text-[11px] font-normal text-zinc-400">
-                    (인건비 제외 · 직접비 기준)
-                  </span>{" "}
-                  · {parts.join(" / ")}
+                  <span className="font-semibold text-emerald-700">수익성</span> · {parts.join(" / ")}
                 </div>
               );
             })()}
