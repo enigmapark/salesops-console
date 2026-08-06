@@ -408,18 +408,25 @@ export default function ReportPage() {
               1.9개월). 단, 이 마진은 인건비·고정비 전이라 순이익은 아직입니다(성장기 정상) — 규모로
               고정비를 희석하는 국면입니다.
             </p>
-            <p className="mt-2 text-[11px] leading-relaxed text-zinc-400">
-              <b>보는 법</b> · 총이익률은 <b>높을수록</b> 좋고 업계 평균(SaaS 70~80%)이 기준선입니다 · CAC
-              회수기간은 <b>짧을수록</b> 좋으며 12개월 이내면 건강한 편입니다 · LTV/CAC는 <b>3:1 이상</b>이면
-              건강하고, 5:1을 넘으면 광고 여력이 큽니다(더 써도 됩니다). ※ LTV 유지기간은 <b>링고=계약
-              12개월</b>, <b>뉴로=약정 없어 12개월 보수 가정</b>이라, 실제 해지율(churn)이 쌓이면 조정됩니다.
-            </p>
-            <p className="mt-2 rounded-md border border-zinc-200 bg-white p-2.5 text-[11px] leading-relaxed text-zinc-400">
-              <b>측정 주석</b> · 여기 <b>CAC는 광고비만</b> 반영한 값(<b>광고 CAC</b>)으로, 영업·마케팅 인건비와
-              공통 운영비는 제외되어 있습니다. 또한 <b>실제 LTV·해지율·NRR(순매출유지율)</b>은 데이터 축적
-              중으로, <b>8월부터 신규·업셀·다운셀·해지 MRR을 구분해 측정할 예정</b>이며, 그 전까지 LTV는
-              12개월 가정치입니다.
-            </p>
+            <div className="mt-2 rounded-md border border-zinc-200 bg-white p-3 text-[11px] leading-relaxed text-zinc-500">
+              <p className="mb-1.5 font-semibold text-zinc-600">지표 읽는 법 · 측정 기준</p>
+              <ul className="space-y-1">
+                <li>
+                  · <b>총이익률</b> — 높을수록 좋고, 업계 평균(SaaS 70~80%)이 기준선입니다.
+                </li>
+                <li>
+                  · <b>CAC 회수기간</b> — 짧을수록 좋고, 12개월 이내면 건강합니다.
+                </li>
+                <li>
+                  · <b>LTV/CAC</b> — 3:1 이상이면 건강하고, 5:1을 넘으면 광고 여력이 큽니다(더 써도 됩니다).
+                </li>
+              </ul>
+              <p className="mt-2 border-t border-zinc-100 pt-2 text-zinc-400">
+                <b>측정 기준</b> · CAC는 <b>광고비만</b> 반영합니다(영업·마케팅 인건비·공통 운영비 제외) · LTV는
+                유지기간 가정치입니다(<b>링고=계약 12개월</b>, <b>뉴로=약정 없어 12개월 보수 가정</b>) · 실제
+                LTV·해지율·NRR은 <b>8월부터 신규·업셀·다운셀·해지 MRR을 구분해 측정할 예정</b>입니다.
+              </p>
+            </div>
           </section>
         );
       })()}
