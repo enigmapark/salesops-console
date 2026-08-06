@@ -162,24 +162,25 @@ export default function ReportPage() {
               if (!pnl && !dev && lingoRev == null) return null;
               const parts: string[] = [];
               if (lingoRev != null && dev?.serverAiCost != null) {
-                const lm = lingoRev - dev.serverAiCost;
+                const lm = lingoRev - dev.serverAiCost - spendBy("링고");
                 const lr = lingoRev > 0 ? (lm / lingoRev) * 100 : 0;
-                parts.push(
-                  `링고 마진 ${fmtWon(lm)} · ${lr.toFixed(1)}% (실결제 ${fmtWon(lingoRev)} − 서버·AI ${fmtWon(dev.serverAiCost)})`,
-                );
+                parts.push(`링고 마진 ${fmtWon(lm)} · ${lr.toFixed(1)}%`);
               } else if (lingoRev != null || dev?.revenueVsCostRate != null) {
                 parts.push(
                   `링고 실결제 ${lingoRev != null ? fmtWon(lingoRev) : "–"}${dev?.revenueVsCostRate != null ? ` · 서버·AI 비용율 ${dev.revenueVsCostRate}%` : ""}`,
                 );
               }
               if (pnl) {
-                const m = pnl.revenueSupply - pnl.totalCost;
+                const m = pnl.revenueSupply - pnl.totalCost - spendBy("뉴로");
                 const rate = pnl.revenueSupply > 0 ? (m / pnl.revenueSupply) * 100 : 0;
                 parts.push(`뉴로 마진 ${fmtWon(m)} · ${rate.toFixed(1)}%`);
               }
+              if (parts.length === 0) return null;
               return (
                 <div className="mt-2 rounded-md border border-emerald-200 bg-white px-3 py-2 text-sm text-zinc-700">
-                  <span className="font-semibold text-emerald-700">수익성</span> · {parts.join(" / ")}
+                  <span className="font-semibold text-emerald-700">수익성</span>{" "}
+                  <span className="text-[11px] font-normal text-zinc-400">(원가·광고비 차감)</span> ·{" "}
+                  {parts.join(" / ")}
                 </div>
               );
             })()}
