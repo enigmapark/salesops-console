@@ -415,8 +415,9 @@ export default function ReportPage() {
             </p>
             <p className="mt-2 rounded-md border border-zinc-200 bg-white p-2.5 text-[11px] leading-relaxed text-zinc-400">
               <b>측정 주석</b> · 여기 <b>CAC는 광고비만</b> 반영한 값(<b>광고 CAC</b>)으로, 영업·마케팅 인건비와
-              공통 운영비는 제외됐다. 또한 <b>실제 LTV·해지율·NRR(순매출유지율)</b>은 데이터 축적 중 —
-              <b>8월부터 신규·업셀·다운셀·해지 MRR을 구분해 측정 예정</b>이며, 그 전까지 LTV는 12개월 가정치다.
+              공통 운영비는 제외되어 있습니다. 또한 <b>실제 LTV·해지율·NRR(순매출유지율)</b>은 데이터 축적
+              중으로, <b>8월부터 신규·업셀·다운셀·해지 MRR을 구분해 측정할 예정</b>이며, 그 전까지 LTV는
+              12개월 가정치입니다.
             </p>
           </section>
         );
