@@ -321,7 +321,12 @@ export default function ReportPage() {
           const ltvBasis = product === "링고" ? "계약 12개월 기준" : "약정 없음 · 12개월 가정";
           const ltv = monthlyGP != null ? monthlyGP * LIFETIME : null;
           const ltvCac = ltv != null && cac != null && cac > 0 ? ltv / cac : null;
-          return { product, gm, cac, payback, ltv, ltvCac, ltvBasis };
+          // 링고 개선 가능 영역: 세팅비(약 20만) 일회성 별도 + 1년 계약 후 월요금 7만→15만원 인상 → 실제 4~5:1
+          const ltvNote =
+            product === "링고"
+              ? "세팅비 별도 + 1년 후 월 7만→15만원↑ 반영 시 실제 4~5:1"
+              : null;
+          return { product, gm, cac, payback, ltv, ltvCac, ltvBasis, ltvNote };
         });
         if (!rows.some((r) => r.gm != null || r.cac != null)) return null;
         return (
@@ -373,6 +378,11 @@ export default function ReportPage() {
                         LTV ~{fmtWon(r.ltv)} · {r.ltvBasis}
                       </p>
                     )}
+                    {r.ltvNote && (
+                      <p className="mt-1 rounded bg-white px-1.5 py-1 text-[10px] font-medium text-emerald-600">
+                        ↑ {r.ltvNote}
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}
@@ -380,10 +390,11 @@ export default function ReportPage() {
             <p className="mt-3 rounded-md bg-zinc-50 p-2.5 text-[11px] leading-relaxed text-zinc-500">
               <b>해석</b> · SaaS 총이익률 벤치마크는 70~80%인데 AI 토큰·추론 원가로 우리는 42~44%로 낮다 —
               원가 절감·가격 인상이 수익 천장을 올리는 레버. 반면 CAC 회수기간이 짧아(구독 누적)
-              LTV/CAC가 건강 기준(3:1)을 웃돈다 — 링고는 12개월 계약 기준 3.1:1, 뉴로는 약정이 없어
-              보수적(12개월 가정)으로 봐도 6.3:1로, 광고를 더 써도 되는 여력이 있다는 뜻(특히 뉴로는
-              회수 1.9개월). 단, 이 마진은 인건비·고정비 전이라 순이익은 아직(성장기 정상) — 규모로
-              고정비를 희석하는 국면.
+              LTV/CAC가 업계 건강 기준(<b>3:1</b> · CAC가 고객가치의 33% 이하)을 웃돈다 — 링고는 12개월
+              계약 기준 3.1:1(순수 구독·보수 하한), 여기에 <b>세팅비(별도)</b>와 <b>1년 계약 후 월요금
+              7만→15만원 인상</b>을 반영하면 <b>실제 4~5:1</b>까지 개선 가능. 뉴로는 약정이 없어도 6.3:1로,
+              둘 다 광고를 더 써도 되는 여력이 있다는 뜻(특히 뉴로는 회수 1.9개월). 단, 이 마진은
+              인건비·고정비 전이라 순이익은 아직(성장기 정상) — 규모로 고정비를 희석하는 국면.
             </p>
             <p className="mt-2 text-[11px] leading-relaxed text-zinc-400">
               <b>보는 법</b> · 총이익률은 <b>높을수록</b> 좋고 업계 평균(SaaS 70~80%)이 기준선 · CAC 회수기간은
