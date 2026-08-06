@@ -151,6 +151,36 @@ export default function ReportPage() {
             {cmt.headline && (
               <p className="text-sm leading-relaxed text-zinc-800">{cmt.headline}</p>
             )}
+            {(() => {
+              const pnl = (data.monthlyPnls ?? []).find(
+                (p) => p.month === month && p.product === "뉴로",
+              );
+              const dev = (data.devReviews ?? []).find(
+                (r) => r.month === month && r.product === "링고",
+              );
+              const lingoRev = revenueOf(data, month, "링고")?.actualPayment;
+              if (!pnl && !dev && lingoRev == null) return null;
+              const parts: string[] = [];
+              if (lingoRev != null || dev?.revenueVsCostRate != null) {
+                parts.push(
+                  `링고 실결제 ${lingoRev != null ? fmtWon(lingoRev) : "–"}${dev?.revenueVsCostRate != null ? ` · 서버·AI 비용율 ${dev.revenueVsCostRate}%` : ""}`,
+                );
+              }
+              if (pnl) {
+                const m = pnl.revenueSupply - pnl.totalCost;
+                const rate = pnl.revenueSupply > 0 ? (m / pnl.revenueSupply) * 100 : 0;
+                parts.push(`뉴로 마진 ${fmtWon(m)} · ${rate.toFixed(1)}%`);
+              }
+              return (
+                <div className="mt-2 rounded-md border border-emerald-200 bg-white px-3 py-2 text-sm text-zinc-700">
+                  <span className="font-semibold text-emerald-700">수익성</span>{" "}
+                  <span className="text-[11px] font-normal text-zinc-400">
+                    (인건비 제외 · 직접비 기준)
+                  </span>{" "}
+                  · {parts.join(" / ")}
+                </div>
+              );
+            })()}
             {cmt.decisions && (
               <div className="mt-2 rounded-md border border-indigo-200 bg-white px-3 py-2 text-sm text-zinc-700">
                 <span className="font-semibold text-indigo-700">경영진 결정·지원 필요</span>
