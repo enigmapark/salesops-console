@@ -181,6 +181,9 @@ export default function ReportPage() {
                   <span className="font-semibold text-emerald-700">수익성</span>{" "}
                   <span className="text-[11px] font-normal text-zinc-400">(원가·광고비 차감)</span> ·{" "}
                   {parts.join(" / ")}
+                  <p className="mt-1 text-[10px] font-normal text-zinc-400">
+                    ※ 마진율 분모 = 뉴로는 공급가(VAT 제외) · 링고는 실결제 기준
+                  </p>
                 </div>
               );
             })()}
@@ -188,6 +191,12 @@ export default function ReportPage() {
               <div className="mt-2 rounded-md border border-indigo-200 bg-white px-3 py-2 text-sm text-zinc-700">
                 <span className="font-semibold text-indigo-700">경영진 결정·지원 필요</span>
                 <div className="mt-1 whitespace-pre-line">{cmt.decisions}</div>
+              </div>
+            )}
+            {cmt.nextTargets && (
+              <div className="mt-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-700">
+                <span className="font-semibold text-zinc-800">다음 달(8월) 목표</span>
+                <div className="mt-1 whitespace-pre-line">{cmt.nextTargets}</div>
               </div>
             )}
           </section>
@@ -265,7 +274,7 @@ export default function ReportPage() {
                     sub={`신규 계약 ${deals}건 · ${deltaCountLabel(deals, prevDeals)}`}
                   />
                   <KpiCard
-                    label="CAC (계약당 광고비)"
+                    label="광고 CAC"
                     value={cac !== null ? fmtWon(cac) : "–"}
                     sub={deals > 0 ? `광고비 ${fmtWon(spend)} ÷ ${deals}건` : `광고비 ${fmtWon(spend)} · 계약 0건`}
                   />
@@ -352,7 +361,7 @@ export default function ReportPage() {
                       <p className="text-[10px] text-zinc-400">매출−원가(광고 전)</p>
                     </div>
                     <div>
-                      <p className="text-[11px] text-zinc-500">CAC</p>
+                      <p className="text-[11px] text-zinc-500">광고 CAC</p>
                       <p className="text-base font-bold">
                         {r.cac != null ? fmtWon(Math.round(r.cac)) : "–"}
                       </p>
@@ -368,7 +377,9 @@ export default function ReportPage() {
                   </div>
                   <div className="mt-2 rounded-md border border-indigo-200 bg-indigo-50 px-2.5 py-1.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-semibold text-indigo-700">LTV / CAC</span>
+                      <span className="text-[11px] font-semibold text-indigo-700">
+                        LTV / CAC <span className="font-normal text-indigo-400">(12개월 가정)</span>
+                      </span>
                       <span className="text-sm font-bold text-indigo-700">
                         {r.ltvCac != null ? `${r.ltvCac.toFixed(1)} : 1` : "–"}
                       </span>
@@ -401,6 +412,11 @@ export default function ReportPage() {
               <b>짧을수록</b> 좋으며 12개월 이내면 건강한 편 · LTV/CAC는 <b>3:1 이상</b>이면 건강, 5:1을 넘으면
               광고 여력이 큼(더 써도 됨). ※ LTV 유지기간은 <b>링고=계약 12개월</b>, <b>뉴로=약정 없어 12개월
               보수 가정</b>이라, 실제 해지율(churn)이 쌓이면 조정된다.
+            </p>
+            <p className="mt-2 rounded-md border border-zinc-200 bg-white p-2.5 text-[11px] leading-relaxed text-zinc-400">
+              <b>측정 주석</b> · 여기 <b>CAC는 광고비만</b> 반영한 값(<b>광고 CAC</b>)으로, 영업·마케팅 인건비와
+              공통 운영비는 제외됐다. 또한 <b>실제 LTV·해지율·NRR(순매출유지율)</b>은 데이터 축적 중 —
+              <b>8월부터 신규·업셀·다운셀·해지 MRR을 구분해 측정 예정</b>이며, 그 전까지 LTV는 12개월 가정치다.
             </p>
           </section>
         );

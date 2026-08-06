@@ -123,6 +123,7 @@ export interface ReportComment {
   month: string; // YYYY-MM
   headline?: string; // 이번 달 결론 (맨 위 10초 요약 — 성과·리스크 한 줄)
   decisions?: string; // 경영진 결정·지원 필요 (1~2줄)
+  nextTargets?: string; // 다음 달 숫자 목표 (줄바꿈 구분)
   why: string; // 이번 달 상황·배경
   how: string; // 어떻게 대응했나
   what: string; // 결과·다음 달 계획
