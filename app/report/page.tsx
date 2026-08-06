@@ -294,6 +294,80 @@ export default function ReportPage() {
         </p>
       </section>
 
+      {/* SaaS 유닛 이코노믹스 — 총이익률·CAC 회수기간 (단월 마진보다 정확한 SaaS 수익성) */}
+      {(() => {
+        const rows = (["링고", "뉴로"] as Product[]).map((product) => {
+          const pnl = (data.monthlyPnls ?? []).find(
+            (p) => p.month === month && p.product === product,
+          );
+          const dev = (data.devReviews ?? []).find(
+            (r) => r.month === month && r.product === product,
+          );
+          const rev =
+            product === "링고"
+              ? (revenueOf(data, month, "링고")?.actualPayment ?? null)
+              : (pnl?.revenueSupply ?? null);
+          const cogs = product === "링고" ? (dev?.serverAiCost ?? null) : (pnl?.totalCost ?? null);
+          const gm = rev != null && cogs != null && rev > 0 ? ((rev - cogs) / rev) * 100 : null;
+          const pLeads = data.leads.filter((l) => l.product === product);
+          const deals = contractsInMonth(pLeads, month).length;
+          const cac = deals > 0 ? spendBy(product) / deals : null;
+          const mrrPer = deals > 0 ? newMrrInMonth(pLeads, month) / deals : null;
+          const monthlyGP = mrrPer != null && gm != null ? mrrPer * (gm / 100) : null;
+          const payback = cac != null && monthlyGP != null && monthlyGP > 0 ? cac / monthlyGP : null;
+          return { product, gm, cac, payback };
+        });
+        if (!rows.some((r) => r.gm != null || r.cac != null)) return null;
+        return (
+          <section className="rounded-xl border border-zinc-200 bg-white p-4">
+            <h2 className="mb-1 text-sm font-semibold">
+              {month} SaaS 유닛 이코노믹스{" "}
+              <span className="text-xs font-normal text-zinc-400">단월 마진보다 정확한 SaaS 수익성</span>
+            </h2>
+            <p className="mb-3 text-[11px] text-zinc-400">
+              단월 마진은 이번 달 광고비를 한 달 매출에만 붙여 SaaS(구독)를 과소평가한다. 총이익률과 CAC
+              회수기간이 실제 그림.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {rows.map((r) => (
+                <div key={r.product} className="rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+                  <p className="mb-2 text-xs font-semibold text-zinc-600">{r.product}</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <p className="text-[11px] text-zinc-500">총이익률</p>
+                      <p className="text-base font-bold">
+                        {r.gm != null ? `${r.gm.toFixed(1)}%` : "–"}
+                      </p>
+                      <p className="text-[10px] text-zinc-400">매출−원가(광고 전)</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-zinc-500">CAC</p>
+                      <p className="text-base font-bold">
+                        {r.cac != null ? fmtWon(Math.round(r.cac)) : "–"}
+                      </p>
+                      <p className="text-[10px] text-zinc-400">계약당 광고비</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-zinc-500">CAC 회수</p>
+                      <p className="text-base font-bold">
+                        {r.payback != null ? `~${r.payback.toFixed(1)}개월` : "–"}
+                      </p>
+                      <p className="text-[10px] text-zinc-400">12개월↓ 건강</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 rounded-md bg-zinc-50 p-2.5 text-[11px] leading-relaxed text-zinc-500">
+              <b>해석</b> · SaaS 총이익률 벤치마크는 70~80%인데 AI 토큰·추론 원가로 우리는 42~44%로 낮다 —
+              원가 절감·가격 인상이 수익 천장을 올리는 레버. 반면 CAC 회수기간이 짧아(구독 누적) 유닛
+              이코노믹스는 건강하고 광고 지출이 정당화된다. 단, 이 마진은 인건비·고정비 전이라 순이익은
+              아직(성장기 정상) — 규모로 고정비를 희석하는 국면.
+            </p>
+          </section>
+        );
+      })()}
+
       {/* 제품 비교 — 광고비·리드·계약을 한눈에 */}
       <section className="rounded-xl border border-zinc-200 bg-white p-4">
         <h2 className="mb-3 text-sm font-semibold">{month} 제품 비교 (한눈에)</h2>
