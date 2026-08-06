@@ -250,6 +250,7 @@ export interface DevReview {
   viewsMoM?: number; // 전월 대비 %
   costPer1000?: number; // 1,000뷰당 비용
   revenueVsCostRate?: number; // 매출 대비 서버·AI 비용 %
+  serverAiCost?: number; // 실질 서버·AI 비용 금액 (AWS 2계정+OpenAI) — 링고 마진 계산용
   infraNote?: string;
   // 크레딧 소진 (고객사 AI 사용량)
   creditTotal?: number; // 누적 크레딧

@@ -161,7 +161,13 @@ export default function ReportPage() {
               const lingoRev = revenueOf(data, month, "링고")?.actualPayment;
               if (!pnl && !dev && lingoRev == null) return null;
               const parts: string[] = [];
-              if (lingoRev != null || dev?.revenueVsCostRate != null) {
+              if (lingoRev != null && dev?.serverAiCost != null) {
+                const lm = lingoRev - dev.serverAiCost;
+                const lr = lingoRev > 0 ? (lm / lingoRev) * 100 : 0;
+                parts.push(
+                  `링고 마진 ${fmtWon(lm)} · ${lr.toFixed(1)}% (실결제 ${fmtWon(lingoRev)} − 서버·AI ${fmtWon(dev.serverAiCost)})`,
+                );
+              } else if (lingoRev != null || dev?.revenueVsCostRate != null) {
                 parts.push(
                   `링고 실결제 ${lingoRev != null ? fmtWon(lingoRev) : "–"}${dev?.revenueVsCostRate != null ? ` · 서버·AI 비용율 ${dev.revenueVsCostRate}%` : ""}`,
                 );
