@@ -431,66 +431,166 @@ export default function ReportPage() {
         );
       })()}
 
-      {/* 제품 비교 — 광고비·리드·계약을 한눈에 */}
-      <section className="rounded-xl border border-zinc-200 bg-white p-4">
-        <h2 className="mb-3 text-sm font-semibold">{month} 제품 비교 (한눈에)</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[480px] text-sm">
-            <thead>
-              <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500">
-                <th className="py-2 font-medium">구분</th>
-                <th className="py-2 text-right font-medium">링고</th>
-                <th className="py-2 text-right font-medium">뉴로</th>
-                <th className="py-2 text-right font-medium">전체</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-b border-zinc-100">
-                <td className="py-2.5 font-medium">광고비 (소진)</td>
-                <td className="py-2.5 text-right tabular-nums">{fmtWon(spendBy("링고"))}</td>
-                <td className="py-2.5 text-right tabular-nums">{fmtWon(spendBy("뉴로"))}</td>
-                <td className="py-2.5 text-right font-semibold tabular-nums">
-                  {fmtWon(spendBy("링고") + spendBy("뉴로"))}
-                </td>
-              </tr>
-              <tr className="border-b border-zinc-100">
-                <td className="py-2.5 font-medium">리드 획득</td>
-                <td className="py-2.5 text-right tabular-nums">{fmtNum(report.lingo.newLeads)}건</td>
-                <td className="py-2.5 text-right tabular-nums">{fmtNum(report.neuro.newLeads)}건</td>
-                <td className="py-2.5 text-right font-semibold tabular-nums">
-                  {fmtNum(totalNewLeads)}건
-                </td>
-              </tr>
-              <tr className="border-b border-zinc-100">
-                <td className="py-2.5 font-medium">당월 계약 (계약일 기준)</td>
-                <td className="py-2.5 text-right tabular-nums">{fmtNum(closedBy("링고").length)}건</td>
-                <td className="py-2.5 text-right tabular-nums">{fmtNum(closedBy("뉴로").length)}건</td>
-                <td className="py-2.5 text-right font-semibold tabular-nums">
-                  {fmtNum(closedThisMonth.length)}건
-                </td>
-              </tr>
-              <tr className="border-b border-zinc-100">
-                <td className="py-2.5 font-medium">신규 MRR (월 반복매출)</td>
-                <td className="py-2.5 text-right tabular-nums">{fmtWon(mrrBy("링고"))}</td>
-                <td className="py-2.5 text-right tabular-nums">{fmtWon(mrrBy("뉴로"))}</td>
-                <td className="py-2.5 text-right font-semibold tabular-nums">{fmtWon(totalNewMrr)}</td>
-              </tr>
-              <tr>
-                <td className="py-2.5 font-medium">코호트 전환율 (유입월 기준)</td>
-                <td className="py-2.5 text-right tabular-nums">{fmtPct(report.lingo.conversionRate)}</td>
-                <td className="py-2.5 text-right tabular-nums">{fmtPct(report.neuro.conversionRate)}</td>
-                <td className="py-2.5 text-right font-semibold tabular-nums">
-                  {fmtPct(safeDiv(monthDealCount, totalNewLeads))}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p className="mt-2 text-[11px] text-zinc-400">
-          당월 계약 = 이 달에 계약된 고객(이전 달 유입 포함) · 코호트 전환율 = 이 달 유입 리드 중
-          최종 계약 비율 · 광고비의 공통 채널분은 전체에만 포함
-        </p>
-      </section>
+      {/* 손익·성장성 한눈에 — 매출→원가→광고비→총이익→효율→판단 (제품별) */}
+      {(() => {
+        const prod = (p: Product) => {
+          const pnl = (data.monthlyPnls ?? []).find((x) => x.month === month && x.product === p);
+          const dev = (data.devReviews ?? []).find((x) => x.month === month && x.product === p);
+          const rev =
+            p === "링고"
+              ? (revenueOf(data, month, "링고")?.actualPayment ?? null)
+              : (pnl?.revenueSupply ?? null);
+          const cogs = p === "링고" ? (dev?.serverAiCost ?? null) : (pnl?.totalCost ?? null);
+          const spend = spendBy(p);
+          const pLeads = data.leads.filter((l) => l.product === p);
+          const deals = contractsInMonth(pLeads, month).length;
+          const mrr = newMrrInMonth(pLeads, month);
+          const cac = deals > 0 ? spend / deals : null;
+          const gp = rev != null && cogs != null ? rev - cogs - spend : null; // 총이익(원가·광고비 차감)
+          const gpRate = gp != null && rev ? (gp / rev) * 100 : null;
+          const gm = rev != null && cogs != null && rev > 0 ? ((rev - cogs) / rev) * 100 : null;
+          const mrrPer = deals > 0 ? mrr / deals : null;
+          const monthlyGP = mrrPer != null && gm != null ? mrrPer * (gm / 100) : null;
+          const payback = cac != null && monthlyGP ? cac / monthlyGP : null;
+          const ltv = monthlyGP != null ? monthlyGP * 12 : null;
+          const ltvCac = ltv != null && cac ? ltv / cac : null;
+          return { rev, cogs, spend, deals, mrr, cac, gp, gpRate, payback, ltvCac };
+        };
+        const L = prod("링고");
+        const N = prod("뉴로");
+        // 광고 추가 투입 판단 — 회수기간 기준 자동
+        const invest = (pb: number | null) =>
+          pb == null
+            ? { t: "–", c: "text-zinc-400" }
+            : pb < 3
+              ? { t: `적극 권장 · 회수 ${pb.toFixed(1)}개월`, c: "text-emerald-700 font-semibold" }
+              : pb < 6
+                ? { t: `가능 · 회수 ${pb.toFixed(1)}개월`, c: "text-emerald-600" }
+                : pb < 12
+                  ? { t: `신중히 · 회수 ${pb.toFixed(1)}개월`, c: "text-amber-600" }
+                  : { t: `재검토 · 회수 ${pb.toFixed(1)}개월`, c: "text-rose-600" };
+        const growth: Record<string, string> = {
+          링고: "안정적 · 갱신 시 요금 2배↑",
+          뉴로: "높음 · 확장 여지 큼",
+        };
+        const won = (v: number | null) => (v == null ? "–" : fmtWon(v));
+        const sum = (a: number | null, b: number | null) =>
+          a == null && b == null ? null : (a ?? 0) + (b ?? 0);
+        const cell = "py-2.5 text-right tabular-nums";
+        return (
+          <section className="rounded-xl border border-zinc-200 bg-white p-4">
+            <h2 className="mb-3 text-sm font-semibold">
+              {month} 손익 · 성장성 한눈에{" "}
+              <span className="text-xs font-normal text-zinc-400">제품별 · 돈의 흐름과 판단</span>
+            </h2>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[520px] text-sm">
+                <thead>
+                  <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500">
+                    <th className="py-2 font-medium">구분</th>
+                    <th className="py-2 text-right font-medium">링고</th>
+                    <th className="py-2 text-right font-medium">뉴로</th>
+                    <th className="py-2 text-right font-medium">전체</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-zinc-100">
+                    <td className="py-2.5 font-medium">매출액</td>
+                    <td className={cell}>{won(L.rev)}</td>
+                    <td className={cell}>{won(N.rev)}</td>
+                    <td className={`${cell} font-semibold`}>{won(sum(L.rev, N.rev))}</td>
+                  </tr>
+                  <tr className="border-b border-zinc-100">
+                    <td className="py-2.5 font-medium text-zinc-600">− 원가 (서버·AI)</td>
+                    <td className={`${cell} text-rose-600`}>{won(L.cogs)}</td>
+                    <td className={`${cell} text-rose-600`}>{won(N.cogs)}</td>
+                    <td className={`${cell} font-semibold text-rose-600`}>{won(sum(L.cogs, N.cogs))}</td>
+                  </tr>
+                  <tr className="border-b border-zinc-100">
+                    <td className="py-2.5 font-medium text-zinc-600">− 광고비 (소진)</td>
+                    <td className={`${cell} text-rose-600`}>{won(L.spend)}</td>
+                    <td className={`${cell} text-rose-600`}>{won(N.spend)}</td>
+                    <td className={`${cell} font-semibold text-rose-600`}>
+                      {won(sum(L.spend, N.spend))}
+                    </td>
+                  </tr>
+                  <tr className="border-b border-zinc-200 bg-emerald-50/60">
+                    <td className="py-2.5 font-bold">= 총이익 (원가·광고비 차감)</td>
+                    <td className={`${cell} font-bold text-emerald-700`}>
+                      {won(L.gp)}
+                      {L.gpRate != null && (
+                        <span className="ml-1 text-[11px] font-normal text-emerald-600">
+                          {L.gpRate.toFixed(1)}%
+                        </span>
+                      )}
+                    </td>
+                    <td className={`${cell} font-bold text-emerald-700`}>
+                      {won(N.gp)}
+                      {N.gpRate != null && (
+                        <span className="ml-1 text-[11px] font-normal text-emerald-600">
+                          {N.gpRate.toFixed(1)}%
+                        </span>
+                      )}
+                    </td>
+                    <td className={`${cell} font-bold text-emerald-700`}>{won(sum(L.gp, N.gp))}</td>
+                  </tr>
+                  <tr className="border-b border-zinc-100">
+                    <td className="py-2.5 font-medium">광고 CAC (계약당)</td>
+                    <td className={cell}>{L.cac != null ? fmtWon(Math.round(L.cac)) : "–"}</td>
+                    <td className={cell}>{N.cac != null ? fmtWon(Math.round(N.cac)) : "–"}</td>
+                    <td className={`${cell} text-zinc-400`}>–</td>
+                  </tr>
+                  <tr className="border-b border-zinc-100">
+                    <td className="py-2.5 font-medium">CAC 회수기간</td>
+                    <td className={cell}>{L.payback != null ? `${L.payback.toFixed(1)}개월` : "–"}</td>
+                    <td className={cell}>{N.payback != null ? `${N.payback.toFixed(1)}개월` : "–"}</td>
+                    <td className={`${cell} text-zinc-400`}>–</td>
+                  </tr>
+                  <tr className="border-b border-zinc-100">
+                    <td className="py-2.5 font-medium">LTV / CAC (12개월 가정)</td>
+                    <td className={cell}>{L.ltvCac != null ? `${L.ltvCac.toFixed(1)} : 1` : "–"}</td>
+                    <td className={cell}>{N.ltvCac != null ? `${N.ltvCac.toFixed(1)} : 1` : "–"}</td>
+                    <td className={`${cell} text-zinc-400`}>–</td>
+                  </tr>
+                  <tr className="border-b border-zinc-100">
+                    <td className="py-2.5 font-medium">신규 계약 / MRR</td>
+                    <td className={cell}>
+                      {fmtNum(L.deals)}건 · {fmtWon(L.mrr)}
+                    </td>
+                    <td className={cell}>
+                      {fmtNum(N.deals)}건 · {fmtWon(N.mrr)}
+                    </td>
+                    <td className={`${cell} font-semibold`}>
+                      {fmtNum(L.deals + N.deals)}건 · {fmtWon(L.mrr + N.mrr)}
+                    </td>
+                  </tr>
+                  <tr className="border-b border-zinc-100">
+                    <td className="py-2.5 font-medium">성장성</td>
+                    <td className={`${cell} text-[12px]`}>{growth["링고"]}</td>
+                    <td className={`${cell} text-[12px]`}>{growth["뉴로"]}</td>
+                    <td className={`${cell} text-zinc-400`}>–</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2.5 font-medium">광고 추가 투입?</td>
+                    <td className={`${cell} text-[12px] ${invest(L.payback).c}`}>
+                      {invest(L.payback).t}
+                    </td>
+                    <td className={`${cell} text-[12px] ${invest(N.payback).c}`}>
+                      {invest(N.payback).t}
+                    </td>
+                    <td className={`${cell} text-zinc-400`}>–</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-2 text-[11px] text-zinc-400">
+              총이익 = 매출 − 원가(서버·AI) − 광고비 · 매출 분모는 뉴로=공급가(VAT 제외)·링고=실결제 기준 ·
+              &lsquo;광고 추가 투입&rsquo;은 CAC 회수기간으로 자동 판정(3개월↓ 적극·6개월↓ 가능·12개월↓ 신중) ·
+              광고비 공통 채널분은 전체에만 포함
+            </p>
+          </section>
+        );
+      })()}
 
       {/* 매출 상세 — 제품별 월별 결제 원장 (실데이터, 데이터 있는 제품만 표시) */}
       {(["링고", "뉴로"] as Product[]).map((product) => {
