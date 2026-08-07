@@ -458,6 +458,11 @@ export default function ReportPage() {
         };
         const L = prod("링고");
         const N = prod("뉴로");
+        // 데이터 없는 달(예: 마감 전 당월)엔 빈 표 숨김
+        const hasData = [L, N].some(
+          (x) => x.rev != null || x.cogs != null || x.deals > 0 || x.spend > 0,
+        );
+        if (!hasData) return null;
         // 광고 추가 투입 판단 — 회수기간 기준 자동
         const invest = (pb: number | null) =>
           pb == null
