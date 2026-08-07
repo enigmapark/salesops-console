@@ -171,8 +171,9 @@ export default function ReportPage() {
                 );
               }
               if (pnl) {
-                const m = pnl.revenueSupply - pnl.totalCost - spendBy("뉴로");
-                const rate = pnl.revenueSupply > 0 ? (m / pnl.revenueSupply) * 100 : 0;
+                const nRev = pnl.revenueBilled; // 부가세 포함(청구가) 기준 — 링고 실결제와 통일
+                const m = nRev - pnl.totalCost - spendBy("뉴로");
+                const rate = nRev > 0 ? (m / nRev) * 100 : 0;
                 parts.push(`뉴로 마진 ${fmtWon(m)} · ${rate.toFixed(1)}%`);
               }
               if (parts.length === 0) return null;
@@ -182,7 +183,7 @@ export default function ReportPage() {
                   <span className="text-[11px] font-normal text-zinc-400">(원가·광고비 차감)</span> ·{" "}
                   {parts.join(" / ")}
                   <p className="mt-1 text-[10px] font-normal text-zinc-400">
-                    ※ 마진율 분모 = 뉴로는 공급가(VAT 제외) · 링고는 실결제 기준
+                    ※ 매출·마진율은 링고·뉴로 모두 실결제(부가세 포함) 기준
                   </p>
                 </div>
               );
@@ -315,7 +316,7 @@ export default function ReportPage() {
           const rev =
             product === "링고"
               ? (revenueOf(data, month, "링고")?.actualPayment ?? null)
-              : (pnl?.revenueSupply ?? null);
+              : (pnl?.revenueBilled ?? null); // 뉴로도 부가세 포함(청구가) 기준으로 링고와 통일
           const cogs = product === "링고" ? (dev?.serverAiCost ?? null) : (pnl?.totalCost ?? null);
           const gm = rev != null && cogs != null && rev > 0 ? ((rev - cogs) / rev) * 100 : null;
           const pLeads = data.leads.filter((l) => l.product === product);
@@ -399,13 +400,13 @@ export default function ReportPage() {
               ))}
             </div>
             <p className="mt-3 rounded-md bg-zinc-50 p-2.5 text-[11px] leading-relaxed text-zinc-500">
-              <b>해석</b> · SaaS 총이익률 벤치마크는 70~80%인데 AI 토큰·추론 원가로 저희는 42~44%로
-              낮습니다 — 원가 절감·가격 인상이 수익 천장을 올리는 레버입니다. 반면 CAC 회수기간이 짧아
-              (구독 누적) LTV/CAC가 업계 건강 기준(<b>3:1</b> · CAC가 고객가치의 33% 이하)을 웃돕니다 —
-              링고는 12개월 계약 기준 3.1:1(순수 구독·보수 하한)이고, 여기에 <b>세팅비(별도)</b>와 <b>1년
-              계약 후 월요금 7만→15만원 인상</b>을 반영하면 <b>실제 4~5:1</b>까지 개선 가능합니다. 뉴로는
-              약정이 없어도 6.3:1로, 둘 다 광고를 더 써도 되는 여력이 있다는 뜻입니다(특히 뉴로는 회수
-              1.9개월). 단, 이 마진은 인건비·고정비 전이라 순이익은 아직입니다(성장기 정상) — 규모로
+              <b>해석</b> · SaaS 총이익률 벤치마크는 70~80%인데 AI 토큰·추론 원가로 저희는 링고 42.5%·뉴로
+              49.4%로 낮은 편입니다 — 원가 절감·가격 인상이 수익 천장을 올리는 레버입니다. 반면 CAC
+              회수기간이 짧아(구독 누적) LTV/CAC가 업계 건강 기준(<b>3:1</b> · CAC가 고객가치의 33% 이하)을
+              웃돕니다 — 링고는 12개월 계약 기준 3.1:1(순수 구독·보수 하한)이고, 여기에 <b>세팅비(별도)</b>와
+              <b>1년 계약 후 월요금 7만→15만원 인상</b>을 반영하면 <b>실제 4~5:1</b>까지 개선 가능합니다.
+              뉴로는 약정이 없어도 7.1:1로, 둘 다 광고를 더 써도 되는 여력이 있다는 뜻입니다(특히 뉴로는
+              회수 1.7개월). 단, 이 마진은 인건비·고정비 전이라 순이익은 아직입니다(성장기 정상) — 규모로
               고정비를 희석하는 국면입니다.
             </p>
             <div className="mt-2 rounded-md border border-zinc-200 bg-white p-3 text-[11px] leading-relaxed text-zinc-500">
@@ -439,7 +440,7 @@ export default function ReportPage() {
           const rev =
             p === "링고"
               ? (revenueOf(data, month, "링고")?.actualPayment ?? null)
-              : (pnl?.revenueSupply ?? null);
+              : (pnl?.revenueBilled ?? null); // 뉴로도 부가세 포함(청구가) 기준으로 링고와 통일
           const cogs = p === "링고" ? (dev?.serverAiCost ?? null) : (pnl?.totalCost ?? null);
           const spend = spendBy(p);
           const pLeads = data.leads.filter((l) => l.product === p);
@@ -589,7 +590,7 @@ export default function ReportPage() {
               </table>
             </div>
             <p className="mt-2 text-[11px] text-zinc-400">
-              총이익 = 매출 − 원가(서버·AI) − 광고비 · 매출 분모는 뉴로=공급가(VAT 제외)·링고=실결제 기준 ·
+              총이익 = 매출 − 원가(서버·AI) − 광고비 · 매출은 링고·뉴로 모두 실결제(부가세 포함) 기준 ·
               &lsquo;광고 추가 투입&rsquo;은 CAC 회수기간으로 자동 판정(3개월↓ 적극·6개월↓ 가능·12개월↓ 신중) ·
               광고비 공통 채널분은 전체에만 포함
             </p>
