@@ -13,7 +13,6 @@ const LINKS = [
   { href: "/dev-review", label: "개발팀 리뷰" },
   { href: "/threads", label: "무료 채널 게시" },
   { href: "/insights", label: "영업 기회" },
-  { href: "/paper-demo", label: "월간리뷰(예시)" },
 ];
 
 export function Nav() {
